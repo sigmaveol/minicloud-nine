@@ -1,0 +1,264 @@
+
+# =========================================================
+# G09 MINICLOUD - DOCKER COMPOSE
+# 9 Main Services + 1 Node Exporter
+# Project: minicloud-nine
+# =========================================================
+
+name: g09-minicloud
+
+# NETWORK CONFIGURATION
+networks: {cloud-net: {name: g09-minicloud-network, driver: bridge}}
+
+
+# PERSISTENT VOLUMES
+volumes:
+  mariadb-data:
+    name: g09-minicloud-mariadb-data
+
+  minio-data:
+    name: g09-minicloud-minio-data
+
+  prometheus-data:
+    name: g09-minicloud-prometheus-data
+
+  grafana-data:
+    name: g09-minicloud-grafana-data
+  
+  loki-data:
+    name: g09-minicloud-loki-data
+
+# SERVICES
+services:
+
+  # -------------------------------------------------------
+  # 1.1 WEB FRONTEND SERVER
+  # -------------------------------------------------------
+  web-frontend-server:
+    build:
+      context: ./web
+    image: g09-minicloud/web:dev
+    container_name: web-frontend-server
+    ports:
+      - "8080:80"
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+  # -------------------------------------------------------
+  # 1.2 WEB FRONTEND SERVER 2 (For Load Balancing)
+  # -------------------------------------------------------
+  web-frontend-server2:
+    build:
+      context: ./web
+    image: g09-minicloud/web:dev
+    container_name: web-frontend-server2
+    ports:
+      - "8082:80" # switch port 
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+  # -------------------------------------------------------
+  # 2. APPLICATION BACKEND SERVER
+  # -------------------------------------------------------
+  application-backend-server:
+    build:
+      context: ./app
+    image: g09-minicloud/app:dev
+    container_name: application-backend-server
+    ports:
+      - "8085:8081"
+    environment:
+      OIDC_ISSUER: ${OIDC_ISSUER:-http://authentication-identity-server:8080/realms/master}
+      OIDC_AUDIENCE: ${OIDC_AUDIENCE:-myapp}
+    depends_on:
+      relational-database-server:
+        condition: service_healthy
+      authentication-identity-server:
+        condition: service_started
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+  # -------------------------------------------------------
+  # 3. RELATIONAL DATABASE SERVER
+  # -------------------------------------------------------
+  relational-database-server:
+    image: mariadb:11
+    container_name: relational-database-server
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+      MARIADB_DATABASE: minicloud
+    volumes:
+      - mariadb-data:/var/lib/mysql
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "3306:3306"
+    networks:
+      - cloud-net
+    healthcheck:
+      test:
+        - CMD
+        - healthcheck.sh
+        - --connect
+        - --innodb_initialized
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # -------------------------------------------------------
+  # 4. AUTHENTICATION & IDENTITY SERVER
+  # -------------------------------------------------------
+  authentication-identity-server:
+    image: quay.io/keycloak/keycloak:26.3
+    container_name: authentication-identity-server
+    command:
+      - start-dev
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_PASSWORD:-admin}
+      KC_HTTP_ENABLED: "true"
+    ports:
+      - "8081:8080"
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+  # -------------------------------------------------------
+  # 5. OBJECT STORAGE SERVER
+  # -------------------------------------------------------
+  object-storage-server:
+    image: chainguard/minio:latest
+    container_name: object-storage-server
+    command:
+      - server
+      - /data
+      - --console-address
+      - ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    volumes:
+      - minio-data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+  # -------------------------------------------------------
+  # 6. INTERNAL DNS SERVER
+  # -------------------------------------------------------
+  internal-dns-server:
+    image: internetsystemsconsortium/bind9:9.20
+    container_name: internal-dns-server
+    ports:
+      - "1053:53/udp"
+      - "1053:53/tcp"
+    volumes:
+      - ./dns/named.conf.options:/etc/bind/named.conf.options:ro
+      - ./dns/named.conf.local:/etc/bind/named.conf.local:ro
+      - ./dns/db.cloud.local:/etc/bind/db.cloud.local:ro
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+  # -------------------------------------------------------
+  # 7. MONITORING - NODE EXPORTER
+  # -------------------------------------------------------
+  monitoring-node-exporter-server:
+    image: prom/node-exporter:latest
+    container_name: monitoring-node-exporter-server
+    ports:
+      - "9100:9100"
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+  # -------------------------------------------------------
+  # 8. MONITORING - PROMETHEUS SERVER
+  # -------------------------------------------------------
+  monitoring-prometheus-server:
+    image: prom/prometheus:latest
+    container_name: monitoring-prometheus-server
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitor/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    depends_on:
+      - monitoring-node-exporter-server
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+  # -------------------------------------------------------
+  # 9. MONITORING - GRAFANA DASHBOARD SERVER
+  # -------------------------------------------------------
+  monitoring-grafana-dashboard-server:
+    image: grafana/grafana:latest
+    container_name: monitoring-grafana-dashboard-server
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - monitoring-prometheus-server
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+  # -------------------------------------------------------
+  # 10. API GATEWAY & REVERSE PROXY SERVER
+  # -------------------------------------------------------
+  api-gateway-proxy-server:
+    image: nginx:stable
+    container_name: api-gateway-proxy-server
+    ports:
+      - "80:80"
+    volumes:
+      - ./proxy/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - web-frontend-server
+      - application-backend-server
+      - authentication-identity-server
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+   # -------------------------------------------------------
+  # 10.1 LOGGING - LOKI SERVER
+  # -------------------------------------------------------
+  logging-loki-server:
+    image: grafana/loki:2.9.0
+    container_name: logging-loki-server
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - loki-data:/loki
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+  # -------------------------------------------------------
+  # 10.2 LOGGING - PROMTAIL (Log Collector)
+  # -------------------------------------------------------
+  logging-promtail-server:
+    image: grafana/promtail:2.9.0
+    container_name: logging-promtail-server
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - cloud-net
+    depends_on:
+      - logging-loki-server
+    restart: unless-stopped

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Nginx and reverse proxies: how web servers route incoming requests to backend services for hosting and load distribution.">
+    <title>Nginx and Reverse Proxy</title>
+    <style>
+        :root {
+            --paper: #f7f6f2;
+            --ink: #1c2430;
+            --muted: #5b6575;
+            --accent: #0f6b6b;
+            --rule: #d9d6cc;
+            --code-bg: #eceae3;
+            color-scheme: light dark;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --paper: #141a22;
+                --ink: #e6e9ee;
+                --muted: #9aa4b2;
+                --accent: #5fc4c4;
+                --rule: #2a3340;
+                --code-bg: #1d2530;
+            }
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            background: var(--paper);
+            color: var(--ink);
+            font-family: "Source Serif 4", Charter, Georgia, serif;
+            font-size: 1.125rem;
+            line-height: 1.75;
+        }
+
+        main {
+            max-width: 42rem;
+            margin: 0 auto;
+            padding: 4rem 1.5rem 3rem;
+        }
+
+        header { margin-bottom: 2.5rem; }
+
+        h1 {
+            font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+            font-size: clamp(2rem, 5vw, 2.75rem);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            line-height: 1.15;
+            margin: 0 0 1rem;
+        }
+
+        .summary {
+            color: var(--muted);
+            margin: 0;
+            font-style: italic;
+        }
+
+        .relevance {
+            display: inline-block;
+            margin-top: 1.25rem;
+            padding: 0.25rem 0.75rem;
+            border-left: 3px solid var(--accent);
+            font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+            font-size: 0.95rem;
+        }
+
+        figure { margin: 2.5rem 0; }
+
+        figure img {
+            display: block;
+            width: 100%;
+            height: auto;
+            border-radius: 4px;
+        }
+
+        figcaption {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--muted);
+        }
+
+        h2 {
+            font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 2.75rem 0 0.75rem;
+        }
+
+        p { margin: 0 0 1.25rem; }
+
+        code {
+            font-family: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+            font-size: 0.9em;
+            background: var(--code-bg);
+            padding: 0.1em 0.35em;
+            border-radius: 3px;
+        }
+
+        pre {
+            background: var(--code-bg);
+            padding: 1rem 1.25rem;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        pre code { background: none; padding: 0; }
+
+        ul { padding-left: 1.25rem; margin: 0 0 1.25rem; }
+        li { margin-bottom: 0.4rem; }
+
+        nav.pagination {
+            margin-top: 3.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--rule);
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+        }
+
+        nav.pagination a {
+            color: var(--accent);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+        }
+
+        nav.pagination a:hover { border-bottom-color: var(--accent); }
+
+        a:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 3px;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <header>
+            <h1>Nginx and Reverse Proxy</h1>
+            <p class="summary">How a single entry point receives web traffic and routes each request to the right service.</p>
+            <span class="relevance">Learning relevance: Web hosting and request routing</span>
+        </header>
+
+        <figure>
+            <img src="images/nginx.jpg"
+                 alt="Diagram of a reverse proxy routing requests to backend servers"
+                 width="500">
+            <figcaption>A reverse proxy sits in front of backend servers and forwards each request to the correct one.</figcaption>
+        </figure>
+
+        <h2>What is Nginx?</h2>
+
+        <p>
+            Nginx is a high-performance web server that is also widely used as a
+            reverse proxy, load balancer, and cache. It handles many simultaneous
+            connections efficiently, which is why it powers a large share of
+            production websites.
+        </p>
+
+        <h2>How a reverse proxy works</h2>
+
+        <p>
+            A forward proxy acts on behalf of clients, while a <strong>reverse
+            proxy</strong> acts on behalf of servers. Visitors connect only to the
+            proxy, which then decides which backend service should handle the request.
+            The client never sees the backend addresses, and the backends never have
+            to face the internet directly.
+        </p>
+
+        <h2>Request routing in practice</h2>
+
+        <p>
+            Routing rules are declared in the Nginx configuration. In the example
+            below, requests under <code>/api/</code> are forwarded to an application
+            server, and everything else is served as static files:
+        </p>
+
+        <pre><code>server {
+    listen 80;
+    server_name example.com;
+
+    location /api/ {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    location / {
+        root /var/www/html;
+        index index.html;
+    }
+}</code></pre>
+
+        <h2>Why it matters</h2>
+
+        <ul>
+            <li>Security: backend servers stay hidden behind a single controlled entry point.</li>
+            <li>Scalability: the proxy can distribute traffic across several identical servers.</li>
+            <li>Simplicity: TLS termination, caching, and compression can live in one place.</li>
+        </ul>
+
+        <nav class="pagination">
+            <a href="/blog/">Back to Blog</a>
+            <a href="/">Back to Home</a>
+        </nav>
+    </main>
+</body>
+</html>

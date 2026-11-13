@@ -1,0 +1,15 @@
+# Bảo mật (Tuyệt đối không push)
+*.pem
+.env
+
+# Dữ liệu Database & Storage (Rất nặng)
+db/data/
+storage/data/
+*.sqlite3
+
+# File hệ thống & IDE
+.DS_Store
+.vscode/
+.idea/
+__pycache__/
+*.pyc

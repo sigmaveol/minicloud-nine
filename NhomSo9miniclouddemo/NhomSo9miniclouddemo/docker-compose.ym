@@ -1,0 +1,144 @@
+mkdir -p minicloud-nine/{app,auth,db/init,dns,grafana,monitor,proxy,storage,web}
+cd minicloud-nine -> notepad docker-compose.yml
+
+- dán nội dung sau:
+
+
+
+services:
+  web-frontend-server:
+    image: nginx:alpine
+    container_name: web-frontend-server
+    ports:
+      - "8080:80"
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+  application-backend-server:
+    image: python:3.12-slim
+    container_name: application-backend-server
+    command: >
+      python -c "from http.server import HTTPServer, BaseHTTPRequestHandler;
+      H=type('H',(BaseHTTPRequestHandler,),{'do_GET':lambda s:(s.send_response(200),s.send_header('Content-Type','application/json'),s.end_headers(),s.wfile.write(b'{\"message\":\"MiniCloud backend is running\"}'))});
+      HTTPServer(('0.0.0.0',5000),H).serve_forever()"
+    ports:
+      - "5000:5000"
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+  relational-database-server:
+    image: mariadb:11
+    container_name: relational-database-server
+    environment:
+      MARIADB_ROOT_PASSWORD: lab_root_password_change_me
+      MARIADB_DATABASE: minicloud
+    volumes:
+      - mariadb-data:/var/lib/mysql
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+  authentication-identity-server:
+    image: quay.io/keycloak/keycloak:26.3
+    container_name: authentication-identity-server
+    command: start-dev
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: lab_admin_password_change_me
+    ports:
+      - "8081:8080"
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+  object-storage-server:
+    image: ghcr.io/librefs/librefs:latest
+    container_name: object-storage-server
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: lab_minio_password_change_me
+    volumes:
+      - minio-data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+  internal-dns-server:
+    image: internetsystemsconsortium/bind9:9.20
+    container_name: internal-dns-server
+    ports:
+    - "1053:53/udp"
+    - "1053:53/tcp"
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+  monitoring-prometheus-server:
+    image: prom/prometheus:latest
+    container_name: monitoring-prometheus-server
+    ports:
+      - "9090:9090"
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+  monitoring-grafana-dashboard-server:
+    image: grafana/grafana:latest
+    container_name: monitoring-grafana-dashboard-server
+    ports:
+      - "3000:3000"
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+  api-gateway-proxy-server:
+    image: nginx:alpine
+    container_name: api-gateway-proxy-server
+    ports:
+      - "80:80"
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+networks:
+  cloud-net:
+    driver: bridge
+
+volumes:
+  mariadb-data:
+  minio-data:
+
+
+- kiểm tra docker
+docker --version 
+docker compose version
+docker info
+- dowload libreFS, một hệ thống lưu trữ tương thích S3 có image trên GitHub Container Registry
+docker pull ghcr.io/librefs/librefs:latest
+
+
+- check config và khởi chạy
+docker compose config
+docker compose up -d
+
+-kiểm tra trạng thái
+docker compose ps
+
+- check dịch vụ trình duyệt
+Dịch vụ	Địa chỉ
+Web frontend	http://localhost:8080
+Backend	http://localhost:5000
+Keycloak	http://localhost:8081
+MinIO Console	http://localhost:9001
+Prometheus	http://localhost:9090
+Grafana	http://localhost:3000
+
+- kiểm tra backend frontend
+curl.exe -i http://localhost:5000
+curl.exe -i http://localhost/

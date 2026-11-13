@@ -1,0 +1,126 @@
+
+services:
+  web-frontend-server:
+    build:
+      context: ./web-frontend-server
+    image: nhomso9/web:dev
+    container_name: web-frontend-server
+    ports:
+      - "8080:80"
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+  web-frontend-server2:
+    image: nhomso9/web:dev
+    container_name: web-frontend-server2
+    networks:
+      - cloud-net
+    restart: unless-stopped
+    
+  application-backend-server:
+    image: python:3.12-slim
+    container_name: application-backend-server
+    command: >
+      python -c "from http.server import HTTPServer, BaseHTTPRequestHandler;
+      H=type('H',(BaseHTTPRequestHandler,),{'do_GET':lambda s:(s.send_response(200),s.send_header('Content-Type','application/json'),s.end_headers(),s.wfile.write(b'{\"message\":\"MiniCloud backend is running\"}'))});
+      HTTPServer(('0.0.0.0',5000),H).serve_forever()"
+    ports:
+      - "5000:5000"
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+  relational-database-server:
+    image: mariadb:11
+    container_name: relational-database-server
+    environment:
+      MARIADB_ROOT_PASSWORD: lab_root_password_change_me
+      MARIADB_DATABASE: minicloud
+    volumes:
+      - mariadb-data:/var/lib/mysql
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+  authentication-identity-server:
+    image: quay.io/keycloak/keycloak:26.3
+    container_name: authentication-identity-server
+    command: start-dev
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: lab_admin_password_change_me
+    ports:
+      - "8081:8080"
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+  object-storage-server:
+    image: ghcr.io/librefs/librefs:latest
+    container_name: object-storage-server
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: lab_minio_password_change_me
+    volumes:
+      - minio-data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+  internal-dns-server:
+    image: internetsystemsconsortium/bind9:9.20
+    container_name: internal-dns-server
+    ports:
+      - "127.0.0.1:1053:53/udp"
+      - "127.0.0.1:1053:53/tcp"
+    volumes:
+      - ./internal-dns-server/named.conf:/etc/bind/named.conf:ro
+      - ./internal-dns-server/named.conf.options:/etc/bind/named.conf.options:ro
+      - ./internal-dns-server/named.conf.local:/etc/bind/named.conf.local:ro
+      - ./internal-dns-server/db.cloud.local:/etc/bind/db.cloud.local:ro
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+  monitoring-prometheus-server:
+    image: prom/prometheus:latest
+    container_name: monitoring-prometheus-server
+    ports:
+      - "9090:9090"
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+  monitoring-grafana-dashboard-server:
+    image: grafana/grafana:latest
+    container_name: monitoring-grafana-dashboard-server
+    ports:
+      - "3000:3000"
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+  api-gateway-proxy-server:
+    image: nginx:stable
+    container_name: api-gateway-proxy-server
+    ports:
+      - "80:80"
+    volumes:
+      - ./api-gateway-proxy-server/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+networks:
+  cloud-net:
+    name: cloud-net
+    driver: bridge
+
+volumes:
+  mariadb-data:
+  minio-data:

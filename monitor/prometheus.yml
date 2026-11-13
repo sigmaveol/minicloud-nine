@@ -1,0 +1,19 @@
+global:
+  scrape_interval: 15s # Thu thập dữ liệu 15s/ lan
+  evaluation_interval: 15s
+
+scrape_configs:
+  # 1. Prometheus Monitor
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # 2. Node Exporter Monitor (get metrics CPU, RAM, Network of host/container)
+  - job_name: 'node'
+    static_configs:
+      - targets: ['monitoring-node-exporter-server:9100']
+
+  # 3.Web Server Monitor (Level 2)
+  - job_name: 'web'
+    static_configs:
+      - targets: ['web-frontend-server:80']

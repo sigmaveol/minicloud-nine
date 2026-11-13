@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Cloud computing basics: service models, deployment options, and how cloud infrastructure is organized into regions and zones.">
+    <title>Cloud Computing Basics</title>
+    <style>
+        :root {
+            --paper: #f7f6f2;
+            --ink: #1c2430;
+            --muted: #5b6575;
+            --accent: #0f6b6b;
+            --rule: #d9d6cc;
+            --code-bg: #eceae3;
+            color-scheme: light dark;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --paper: #141a22;
+                --ink: #e6e9ee;
+                --muted: #9aa4b2;
+                --accent: #5fc4c4;
+                --rule: #2a3340;
+                --code-bg: #1d2530;
+            }
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            background: var(--paper);
+            color: var(--ink);
+            font-family: "Source Serif 4", Charter, Georgia, serif;
+            font-size: 1.125rem;
+            line-height: 1.75;
+        }
+
+        main {
+            max-width: 42rem;
+            margin: 0 auto;
+            padding: 4rem 1.5rem 3rem;
+        }
+
+        header { margin-bottom: 2.5rem; }
+
+        h1 {
+            font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+            font-size: clamp(2rem, 5vw, 2.75rem);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            line-height: 1.15;
+            margin: 0 0 1rem;
+        }
+
+        .summary {
+            color: var(--muted);
+            margin: 0;
+            font-style: italic;
+        }
+
+        .relevance {
+            display: inline-block;
+            margin-top: 1.25rem;
+            padding: 0.25rem 0.75rem;
+            border-left: 3px solid var(--accent);
+            font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+            font-size: 0.95rem;
+        }
+
+        figure { margin: 2.5rem 0; }
+
+        figure img {
+            display: block;
+            width: 100%;
+            height: auto;
+            border-radius: 4px;
+        }
+
+        figcaption {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--muted);
+        }
+
+        h2 {
+            font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 2.75rem 0 0.75rem;
+        }
+
+        p { margin: 0 0 1.25rem; }
+
+        ul { padding-left: 1.25rem; margin: 0 0 1.25rem; }
+        li { margin-bottom: 0.4rem; }
+
+        .table-wrap {
+            overflow-x: auto;
+            margin: 1.5rem 0 2rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.98rem;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 0.6rem 0.75rem;
+            border-bottom: 1px solid var(--rule);
+            vertical-align: top;
+        }
+
+        th {
+            font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+            font-weight: 600;
+        }
+
+        nav.pagination {
+            margin-top: 3.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--rule);
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+        }
+
+        nav.pagination a {
+            color: var(--accent);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+        }
+
+        nav.pagination a:hover { border-bottom-color: var(--accent); }
+
+        a:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 3px;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <header>
+            <h1>Cloud Computing Basics</h1>
+            <p class="summary">How cloud platforms deliver computing power on demand, and how their infrastructure is organized.</p>
+            <span class="relevance">Learning relevance: Cloud infrastructure</span>
+        </header>
+
+        <figure>
+            <img src="images/cloud.jpg"
+                 alt="Illustration of cloud computing infrastructure"
+                 width="500">
+            <figcaption>Cloud providers pool servers, storage, and networking across data centers worldwide.</figcaption>
+        </figure>
+
+        <h2>What is cloud computing?</h2>
+
+        <p>
+            Cloud computing is the delivery of computing resources such as servers,
+            storage, databases, and networking over the internet, usually on a
+            pay-as-you-go basis. Instead of buying and maintaining hardware, teams
+            rent capacity and scale it up or down as demand changes.
+        </p>
+
+        <h2>Service models</h2>
+
+        <p>
+            Cloud services are commonly grouped by how much of the stack the provider
+            manages for you:
+        </p>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th scope="col">Model</th>
+                        <th scope="col">You manage</th>
+                        <th scope="col">Provider manages</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>IaaS (Infrastructure as a Service)</td>
+                        <td>Operating systems, runtime, applications, data</td>
+                        <td>Virtual machines, storage, networking</td>
+                    </tr>
+                    <tr>
+                        <td>PaaS (Platform as a Service)</td>
+                        <td>Applications and data</td>
+                        <td>Runtime, middleware, operating system, infrastructure</td>
+                    </tr>
+                    <tr>
+                        <td>SaaS (Software as a Service)</td>
+                        <td>Configuration and user data</td>
+                        <td>The complete application and everything beneath it</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h2>Cloud infrastructure</h2>
+
+        <p>
+            Providers organize their infrastructure in layers. A <strong>region</strong>
+            is a geographic area, such as a country or metropolitan zone. Each region
+            contains several <strong>availability zones</strong>, which are physically
+            separate data centers with independent power and networking. Deploying
+            across zones lets an application survive the failure of one facility.
+        </p>
+
+        <h2>Why it matters</h2>
+
+        <ul>
+            <li>Elasticity: resources expand and contract with real traffic.</li>
+            <li>Reliability: replication across zones and regions reduces downtime.</li>
+            <li>Cost control: you pay for what you use rather than idle hardware.</li>
+        </ul>
+
+        <nav class="pagination">
+            <a href="/blog/">Back to Blog</a>
+            <a href="/">Back to Home</a>
+        </nav>
+    </main>
+</body>
+</html>
