@@ -1,231 +1,228 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Cloud computing basics: service models, deployment options, and how cloud infrastructure is organized into regions and zones.">
-    <title>Cloud Computing Basics</title>
-    <style>
-        :root {
-            --paper: #f7f6f2;
-            --ink: #1c2430;
-            --muted: #5b6575;
-            --accent: #0f6b6b;
-            --rule: #d9d6cc;
-            --code-bg: #eceae3;
-            color-scheme: light dark;
-        }
-
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --paper: #141a22;
-                --ink: #e6e9ee;
-                --muted: #9aa4b2;
-                --accent: #5fc4c4;
-                --rule: #2a3340;
-                --code-bg: #1d2530;
-            }
-        }
-
-        * { box-sizing: border-box; }
-
-        body {
-            margin: 0;
-            background: var(--paper);
-            color: var(--ink);
-            font-family: "Source Serif 4", Charter, Georgia, serif;
-            font-size: 1.125rem;
-            line-height: 1.75;
-        }
-
-        main {
-            max-width: 42rem;
-            margin: 0 auto;
-            padding: 4rem 1.5rem 3rem;
-        }
-
-        header { margin-bottom: 2.5rem; }
-
-        h1 {
-            font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
-            font-size: clamp(2rem, 5vw, 2.75rem);
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            line-height: 1.15;
-            margin: 0 0 1rem;
-        }
-
-        .summary {
-            color: var(--muted);
-            margin: 0;
-            font-style: italic;
-        }
-
-        .relevance {
-            display: inline-block;
-            margin-top: 1.25rem;
-            padding: 0.25rem 0.75rem;
-            border-left: 3px solid var(--accent);
-            font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
-            font-size: 0.95rem;
-        }
-
-        figure { margin: 2.5rem 0; }
-
-        figure img {
-            display: block;
-            width: 100%;
-            height: auto;
-            border-radius: 4px;
-        }
-
-        figcaption {
-            margin-top: 0.5rem;
-            font-size: 0.9rem;
-            color: var(--muted);
-        }
-
-        h2 {
-            font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin: 2.75rem 0 0.75rem;
-        }
-
-        p { margin: 0 0 1.25rem; }
-
-        ul { padding-left: 1.25rem; margin: 0 0 1.25rem; }
-        li { margin-bottom: 0.4rem; }
-
-        .table-wrap {
-            overflow-x: auto;
-            margin: 1.5rem 0 2rem;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.98rem;
-        }
-
-        th, td {
-            text-align: left;
-            padding: 0.6rem 0.75rem;
-            border-bottom: 1px solid var(--rule);
-            vertical-align: top;
-        }
-
-        th {
-            font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
-            font-weight: 600;
-        }
-
-        nav.pagination {
-            margin-top: 3.5rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid var(--rule);
-            display: flex;
-            gap: 1.5rem;
-            flex-wrap: wrap;
-            font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
-        }
-
-        nav.pagination a {
-            color: var(--accent);
-            text-decoration: none;
-            border-bottom: 1px solid transparent;
-        }
-
-        nav.pagination a:hover { border-bottom-color: var(--accent); }
-
-        a:focus-visible {
-            outline: 2px solid var(--accent);
-            outline-offset: 3px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bài 2: Thị giác máy tính (Computer Vision) - MyMiniCloud Blog</title>
+  <script>
+    if (localStorage.getItem("minicloud-theme") === "dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  </script>
+  <style>
+    :root {
+      --bg: #faf9f6;
+      --surface: #ffffff;
+      --ink: #0f172a;
+      --muted: #334155;
+      --soft: #64748b;
+      --line: #e2e8f0;
+      --tag-bg: #fff7ed;
+      --tag-ink: #c2410c;
+      --callout-bg: #fffbeb;
+      --callout-border: #fde68a;
+    }
+    [data-theme="dark"] {
+      --bg: #0b1120;
+      --surface: #111827;
+      --ink: #f1f5f9;
+      --muted: #cbd5e1;
+      --soft: #94a3b8;
+      --line: #1f2937;
+      --tag-bg: rgba(251, 146, 60, 0.14);
+      --tag-ink: #fb923c;
+      --callout-bg: rgba(251, 146, 60, 0.1);
+      --callout-border: rgba(251, 146, 60, 0.3);
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      margin: 0;
+      line-height: 1.8;
+      transition: background 0.2s, color 0.2s;
+    }
+    .wrap { max-width: 840px; margin: 0 auto; padding: 28px 20px 64px; }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 22px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .btn {
+      text-decoration: none;
+      color: var(--ink);
+      font-size: 0.9rem;
+      font-weight: 600;
+      padding: 8px 14px;
+      border-radius: 8px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .btn:hover { opacity: 0.85; }
+    article {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .hero-pic {
+      background: #0f172a;
+      text-align: center;
+      border-bottom: 1px solid var(--line);
+    }
+    .hero-pic img {
+      width: 100%;
+      max-height: 430px;
+      object-fit: cover;
+      display: block;
+    }
+    .caption {
+      font-size: 0.82rem;
+      color: #cbd5e1;
+      padding: 8px 14px;
+      background: #1e293b;
+    }
+    .body { padding: 34px; }
+    @media (max-width: 640px) { .body { padding: 22px; } }
+    .tag {
+      display: inline-block;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--tag-ink);
+      background: var(--tag-bg);
+      padding: 4px 10px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+    .meta-line {
+      font-size: 0.86rem;
+      color: var(--soft);
+      margin-bottom: 18px;
+    }
+    h1 { font-size: clamp(1.55rem, 3vw, 2rem); line-height: 1.3; margin: 0 0 10px; }
+    h2 { font-size: 1.25rem; margin: 28px 0 10px; color: var(--ink); border-left: 4px solid var(--tag-ink); padding-left: 12px; }
+    p { margin-bottom: 14px; color: var(--muted); }
+    ul, ol { margin: 0 0 16px 22px; color: var(--muted); }
+    li { margin-bottom: 6px; }
+    .callout {
+      background: var(--callout-bg);
+      border: 1px solid var(--callout-border);
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin: 20px 0;
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+    .callout strong { color: var(--ink); }
+    .nav-bottom {
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+  </style>
 </head>
 <body>
-    <main>
-        <header>
-            <h1>Cloud Computing Basics</h1>
-            <p class="summary">How cloud platforms deliver computing power on demand, and how their infrastructure is organized.</p>
-            <span class="relevance">Learning relevance: Cloud infrastructure</span>
-        </header>
+  <div class="wrap">
+    <div class="topbar">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <a class="btn" href="/blog/">Danh sách Blog</a>
+        <a class="btn" href="/">Trang chính (Home)</a>
+      </div>
+      <button class="btn" type="button" id="theme-toggle">Giao diện Tối</button>
+    </div>
 
-        <figure>
-            <img src="images/cloud.jpg"
-                 alt="Illustration of cloud computing infrastructure"
-                 width="500">
-            <figcaption>Cloud providers pool servers, storage, and networking across data centers worldwide.</figcaption>
-        </figure>
+    <article>
+      <div class="hero-pic">
+        <img
+          src="https://upload.wikimedia.org/wikipedia/commons/3/38/Detected-with-YOLO--Schreibtisch-mit-Objekten.jpg"
+          referrerpolicy="no-referrer"
+          onerror="this.src='images/blog2.jpg'"
+          alt="Nhận diện vật thể trên bàn làm việc bằng mô hình YOLO"
+        />
+        <div class="caption">Minh họa phát hiện nhiều vật thể đồng thời bằng mô hình YOLO (Nguồn: Wikimedia Commons)</div>
+      </div>
 
-        <h2>What is cloud computing?</h2>
+      <div class="body">
+        <span class="tag">Chủ đề 02: Thị giác máy tính (Computer Vision)</span>
+        <h1>Thị giác máy tính (Computer Vision): Từ ma trận điểm ảnh đến nhận diện vật thể</h1>
+        <div class="meta-line">Nhóm G09 | Chuyên mục Trí tuệ nhân tạo | Thời gian đọc: khoảng 5 phút</div>
 
         <p>
-            Cloud computing is the delivery of computing resources such as servers,
-            storage, databases, and networking over the internet, usually on a
-            pay-as-you-go basis. Instead of buying and maintaining hardware, teams
-            rent capacity and scale it up or down as demand changes.
+          Thị giác máy tính (Computer Vision) là nhánh nghiên cứu giúp máy tính thu nhận, phân tích và rút trích thông tin có ý nghĩa từ hình ảnh hoặc chuỗi video. Nếu mắt người tự nhiên nhận biết được chiếc cốc hay bàn phím chỉ trong tích tắc, thì với phần mềm máy tính, toàn bộ bức ảnh đầu vào chỉ là một bảng số học khổng lồ.
         </p>
 
-        <h2>Service models</h2>
-
+        <h2>1. Máy tính biểu diễn hình ảnh như thế nào?</h2>
         <p>
-            Cloud services are commonly grouped by how much of the stack the provider
-            manages for you:
+          Một bức ảnh kỹ thuật số được cấu thành từ các điểm ảnh (pixel). Với ảnh xám (grayscale) kích thước 640x480, máy tính lưu trữ một ma trận 2 chiều gồm 640 cột và 480 hàng, mỗi phần tử có giá trị từ 0 (đen tuyệt đối) đến 255 (trắng tuyệt đối).
+        </p>
+        <p>
+          Với ảnh màu chuẩn RGB, dữ liệu là một khối 3 chiều (Height x Width x 3) tương ứng với ba kênh màu Đỏ (Red), Xanh lá (Green) và Xanh dương (Blue). Video thực chất là hàng chục khung hình như vậy nối tiếp nhau trong mỗi giây. Vì dữ liệu thô rất nhạy với thay đổi ánh sáng và kích thước, bước tiền xử lý thường phải thay đổi kích thước đồng nhất, chuẩn hóa giá trị pixel về đoạn [0, 1] và áp dụng kỹ thuật tăng cường dữ liệu (Data Augmentation) như lật ảnh, xoay nhẹ hoặc thay đổi độ sáng để mô hình tổng quát hóa tốt hơn.
         </p>
 
-        <div class="table-wrap">
-            <table>
-                <thead>
-                    <tr>
-                        <th scope="col">Model</th>
-                        <th scope="col">You manage</th>
-                        <th scope="col">Provider manages</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>IaaS (Infrastructure as a Service)</td>
-                        <td>Operating systems, runtime, applications, data</td>
-                        <td>Virtual machines, storage, networking</td>
-                    </tr>
-                    <tr>
-                        <td>PaaS (Platform as a Service)</td>
-                        <td>Applications and data</td>
-                        <td>Runtime, middleware, operating system, infrastructure</td>
-                    </tr>
-                    <tr>
-                        <td>SaaS (Software as a Service)</td>
-                        <td>Configuration and user data</td>
-                        <td>The complete application and everything beneath it</td>
-                    </tr>
-                </tbody>
-            </table>
+        <h2>2. Từ đặc trưng thủ công đến Mạng nơ-ron tích chập (CNN)</h2>
+        <p>
+          Trước thời kỳ học sâu, kỹ sư thị giác máy tính phải tự tay thiết kế các bộ trích xuất đặc trưng như bộ lọc Sobel tìm cạnh, SIFT hoặc HOG, rồi đưa vào bộ phân loại SVM. Cách làm này đòi hỏi nhiều kinh nghiệm chuyên môn nhưng rất dễ giảm độ chính xác khi góc chụp thay đổi hoặc nền ảnh phức tạp.
+        </p>
+        <p>
+          Sự phổ biến của <strong>Mạng nơ-ron tích chập (Convolutional Neural Network - CNN)</strong> đã tự động hóa hoàn toàn khâu học đặc trưng:
+        </p>
+        <ul>
+          <li><strong>Các lớp đầu (Low-level features):</strong> Các bộ lọc (kernel) kích thước nhỏ như 3x3 trượt qua ảnh để học cách phát hiện đường thẳng, cạnh ngang dọc và sự chuyển sắc màu.</li>
+          <li><strong>Các lớp giữa (Mid-level features):</strong> Kết hợp các cạnh đơn giản thành họa tiết, góc bo hoặc bộ phận của vật thể như bánh xe, đôi mắt, màn hình.</li>
+          <li><strong>Các lớp sâu (High-level features):</strong> Tổng hợp thông tin toàn cục để phân biệt vật thể hoàn chỉnh, kết hợp cùng lớp gộp (Pooling) giúp giảm kích thước bản đồ đặc trưng và chống nhiễu dịch chuyển nhỏ.</li>
+        </ul>
+        <p>
+          Ngoài CNN truyền thống (như ResNet, EfficientNet), các kiến trúc Vision Transformer (ViT) gần đây còn chia ảnh thành các mảnh vuông nhỏ (patches) và đưa qua cơ chế Self-Attention để nắm bắt quan hệ không gian trên phạm vi rộng.
+        </p>
+
+        <h2>3. Bốn bài toán cốt lõi trong Thị giác máy tính</h2>
+        <ol>
+          <li><strong>Phân loại ảnh (Image Classification):</strong> Dự đoán toàn bộ bức ảnh thuộc về lớp nào (ví dụ: ảnh chụp X-quang bình thường hay có dấu hiệu tổn thương).</li>
+          <li><strong>Phát hiện vật thể (Object Detection):</strong> Không chỉ xác định tên đối tượng mà còn vẽ khung bao (bounding box) xác định vị trí chính xác của nhiều đối tượng trong cùng khung hình. Có hai nhóm chính là Two-stage (như Faster R-CNN, ưu tiên độ chính xác) và One-stage (như họ YOLO, SSD, dự đoán trực tiếp trong một lượt để đạt tốc độ thời gian thực).</li>
+          <li><strong>Phân đoạn ảnh (Segmentation):</strong> Gán nhãn đến từng điểm ảnh riêng lẻ (Semantic Segmentation tách nền với chủ thể, còn Instance Segmentation tách riêng từng cá thể cùng loại).</li>
+          <li><strong>Nhận dạng ký tự (OCR) và Theo dõi đối tượng:</strong> Đọc chữ từ ảnh chụp giấy tờ, biển số xe và bám theo quỹ đạo di chuyển của vật thể qua nhiều khung hình liên tiếp.</li>
+        </ol>
+
+        <div class="callout">
+          <strong>Thực tế triển khai và các thách thức:</strong> Trong môi trường công nghiệp và đời sống, mô hình Computer Vision thường gặp khó khăn khi đối tượng bị che khuất một phần (occlusion), chụp ngược sáng, mờ do chuyển động hoặc góc nhìn thay đổi đột ngột. Bên cạnh độ chính xác, việc tối ưu mô hình nhẹ để chạy mượt trên thiết bị biên (Edge AI) như camera hay Raspberry Pi cũng là yêu cầu rất quan trọng.
         </div>
 
-        <h2>Cloud infrastructure</h2>
+        <div class="nav-bottom">
+          <a class="btn" href="blog1.html">Quay lại Bài 1: Xử lý ngôn ngữ tự nhiên</a>
+          <a class="btn" href="blog3.html">Đọc tiếp Bài 3: Khoa học dữ liệu</a>
+        </div>
+      </div>
+    </article>
+  </div>
 
-        <p>
-            Providers organize their infrastructure in layers. A <strong>region</strong>
-            is a geographic area, such as a country or metropolitan zone. Each region
-            contains several <strong>availability zones</strong>, which are physically
-            separate data centers with independent power and networking. Deploying
-            across zones lets an application survive the failure of one facility.
-        </p>
-
-        <h2>Why it matters</h2>
-
-        <ul>
-            <li>Elasticity: resources expand and contract with real traffic.</li>
-            <li>Reliability: replication across zones and regions reduces downtime.</li>
-            <li>Cost control: you pay for what you use rather than idle hardware.</li>
-        </ul>
-
-        <nav class="pagination">
-            <a href="/blog/">Back to Blog</a>
-            <a href="/">Back to Home</a>
-        </nav>
-    </main>
+  <script>
+    const themeBtn = document.getElementById("theme-toggle");
+    function updateThemeBtn() {
+      const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+      themeBtn.textContent = isDark ? "Giao diện Sáng" : "Giao diện Tối";
+    }
+    updateThemeBtn();
+    themeBtn.addEventListener("click", () => {
+      const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+      if (isDark) {
+        document.documentElement.removeAttribute("data-theme");
+        localStorage.setItem("minicloud-theme", "light");
+      } else {
+        document.documentElement.setAttribute("data-theme", "dark");
+        localStorage.setItem("minicloud-theme", "dark");
+      }
+      updateThemeBtn();
+    });
+  </script>
 </body>
 </html>

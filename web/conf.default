@@ -1,15 +1,10 @@
 server {
     listen 80;
     server_name _;
-
     root /usr/share/nginx/html;
     index index.html;
 
-    absolute_redirect off;
-    
-    location = /blog {
-        return 301 /blog/;
-    }
+    resolver 127.0.0.11 valid=30s;
 
     location / {
         try_files $uri $uri/ =404;
@@ -19,5 +14,34 @@ server {
         alias /usr/share/nginx/html/blog/;
         index index.html;
         autoindex off;
+    }
+
+    # Proxy /api/ và /student/ ngay cả khi truy cập trực tiếp qua cổng 8080 hoặc 8082
+    location ~ ^/api/(.*)$ {
+        set $app_backend "application-backend-server:8081";
+        proxy_pass http://$app_backend/$1$is_args$args;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location = /student {
+        return 301 /student/;
+    }
+
+    location /student/ {
+        set $app_backend "application-backend-server:8081";
+        proxy_pass http://$app_backend/student$is_args$args;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Prometheus metrics endpoint
+    location = /metrics {
+        default_type "text/plain; version=0.0.4";
+        return 200 "# HELP minicloud_web_up Web server availability\n# TYPE minicloud_web_up gauge\nminicloud_web_up 1\n";
     }
 }

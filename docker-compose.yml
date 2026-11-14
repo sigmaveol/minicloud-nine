@@ -1,4 +1,3 @@
-
 # =========================================================
 # G09 MINICLOUD - DOCKER COMPOSE
 # 9 Main Services + 1 Node Exporter
@@ -8,8 +7,7 @@
 name: g09-minicloud
 
 # NETWORK CONFIGURATION
-networks: {cloud-net: {name: g09-minicloud-network, driver: bridge}}
-
+networks: { cloud-net: { name: g09-minicloud-network, driver: bridge } }
 
 # PERSISTENT VOLUMES
 volumes:
@@ -24,7 +22,7 @@ volumes:
 
   grafana-data:
     name: g09-minicloud-grafana-data
-  
+
   loki-data:
     name: g09-minicloud-loki-data
 
@@ -72,6 +70,12 @@ services:
     environment:
       OIDC_ISSUER: ${OIDC_ISSUER:-http://authentication-identity-server:8080/realms/master}
       OIDC_AUDIENCE: ${OIDC_AUDIENCE:-myapp}
+      DB_HOST: relational-database-server
+      DB_USER: root
+      DB_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+      DB_NAME: studentdb
+    volumes:
+      - ./app:/app
     depends_on:
       relational-database-server:
         condition: service_healthy
@@ -155,10 +159,12 @@ services:
   internal-dns-server:
     image: internetsystemsconsortium/bind9:9.20
     container_name: internal-dns-server
+    user: root
     ports:
       - "1053:53/udp"
       - "1053:53/tcp"
     volumes:
+      - ./dns/named.conf:/etc/bind/named.conf:ro
       - ./dns/named.conf.options:/etc/bind/named.conf.options:ro
       - ./dns/named.conf.local:/etc/bind/named.conf.local:ro
       - ./dns/db.cloud.local:/etc/bind/db.cloud.local:ro
@@ -232,7 +238,7 @@ services:
       - cloud-net
     restart: unless-stopped
 
-   # -------------------------------------------------------
+  # -------------------------------------------------------
   # 10.1 LOGGING - LOKI SERVER
   # -------------------------------------------------------
   logging-loki-server:

@@ -1,0 +1,85 @@
+{
+  "realm": "realm_sv001",
+  "enabled": true,
+  "displayName": "G09 MiniCloud Realm (SV001)",
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": false,
+  "accessTokenLifespan": 3600,
+  "clients": [
+    {
+      "clientId": "flask-app",
+      "name": "Flask Backend Client (G09 MiniCloud)",
+      "enabled": true,
+      "publicClient": true,
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "*"
+      ],
+      "webOrigins": [
+        "*"
+      ],
+      "protocol": "openid-connect",
+      "protocolMappers": [
+        {
+          "name": "myapp-audience-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.custom.audience": "myapp",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "sv01",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Nguyen",
+      "lastName": "Van A (SV01)",
+      "email": "sv01@g09.minicloud.local",
+      "requiredActions": [],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "123456",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "default-roles-realm_sv001"
+      ]
+    },
+    {
+      "username": "sv02",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Tran",
+      "lastName": "Thi B (SV02)",
+      "email": "sv02@g09.minicloud.local",
+      "requiredActions": [],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "123456",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "default-roles-realm_sv001"
+      ]
+    }
+  ]
+}

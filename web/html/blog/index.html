@@ -1,166 +1,347 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Articles from the MyMiniCloud blog covering Docker, cloud computing, and Nginx reverse proxies.">
-    <title>MyMiniCloud Blog</title>
-    <style>
-        :root {
-            --paper: #f7f6f2;
-            --ink: #1c2430;
-            --muted: #5b6575;
-            --accent: #0f6b6b;
-            --rule: #d9d6cc;
-            color-scheme: light dark;
-        }
-
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --paper: #141a22;
-                --ink: #e6e9ee;
-                --muted: #9aa4b2;
-                --accent: #5fc4c4;
-                --rule: #2a3340;
-            }
-        }
-
-        * { box-sizing: border-box; }
-
-        body {
-            margin: 0;
-            background: var(--paper);
-            color: var(--ink);
-            font-family: "Source Serif 4", Charter, Georgia, serif;
-            font-size: 1.125rem;
-            line-height: 1.7;
-        }
-
-        main {
-            max-width: 42rem;
-            margin: 0 auto;
-            padding: 4rem 1.5rem 3rem;
-        }
-
-        header { margin-bottom: 3rem; }
-
-        h1 {
-            font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
-            font-size: clamp(2rem, 5vw, 2.75rem);
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            line-height: 1.15;
-            margin: 0 0 0.75rem;
-        }
-
-        .subtitle {
-            color: var(--muted);
-            font-style: italic;
-            margin: 0;
-        }
-
-        h2 {
-            font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin: 0 0 1.5rem;
-        }
-
-        ol.articles {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            border-top: 1px solid var(--rule);
-        }
-
-        ol.articles li {
-            border-bottom: 1px solid var(--rule);
-        }
-
-        ol.articles a {
-            display: block;
-            padding: 1.5rem 0;
-            color: var(--ink);
-            text-decoration: none;
-        }
-
-        .article-title {
-            display: block;
-            font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: var(--accent);
-            margin-bottom: 0.3rem;
-        }
-
-        .article-meta {
-            display: block;
-            font-size: 0.95rem;
-            color: var(--muted);
-        }
-
-        ol.articles a:hover .article-title {
-            text-decoration: underline;
-            text-underline-offset: 3px;
-        }
-
-        ol.articles a:focus-visible {
-            outline: 2px solid var(--accent);
-            outline-offset: 4px;
-        }
-
-        nav.pagination {
-            margin-top: 3rem;
-            font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
-        }
-
-        nav.pagination a {
-            color: var(--accent);
-            text-decoration: none;
-            border-bottom: 1px solid transparent;
-        }
-
-        nav.pagination a:hover { border-bottom-color: var(--accent); }
-
-        nav.pagination a:focus-visible {
-            outline: 2px solid var(--accent);
-            outline-offset: 3px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blog Công nghệ &amp; Dữ liệu - MyMiniCloud</title>
+  <script>
+    if (localStorage.getItem("minicloud-theme") === "dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  </script>
+  <style>
+    :root {
+      --bg: #faf9f6;
+      --surface: #ffffff;
+      --surface-alt: #f8fafc;
+      --ink: #1e293b;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --accent: #0f766e;
+      --accent-soft: #f0fdfa;
+      --btn-bg: #1e293b;
+      --btn-ink: #ffffff;
+    }
+    [data-theme="dark"] {
+      --bg: #0b1120;
+      --surface: #111827;
+      --surface-alt: #1e293b;
+      --ink: #f1f5f9;
+      --muted: #94a3b8;
+      --line: #1f2937;
+      --accent: #2dd4bf;
+      --accent-soft: rgba(45, 212, 191, 0.12);
+      --btn-bg: #0f766e;
+      --btn-ink: #ffffff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.65;
+      transition: background 0.2s, color 0.2s;
+    }
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+    }
+    .nav {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .logo {
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--ink);
+      text-decoration: none;
+    }
+    .logo span { color: var(--accent); }
+    .nav-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .back-btn, .theme-btn {
+      text-decoration: none;
+      color: var(--ink);
+      font-size: 0.88rem;
+      font-weight: 600;
+      padding: 7px 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface-alt);
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .back-btn:hover, .theme-btn:hover { opacity: 0.85; }
+    .wrap {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 34px 20px 64px;
+    }
+    .intro {
+      margin-bottom: 28px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 22px;
+    }
+    .intro small {
+      display: inline-block;
+      color: var(--accent);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+    .intro h1 {
+      font-size: clamp(1.8rem, 3.2vw, 2.4rem);
+      margin-bottom: 8px;
+    }
+    .intro p {
+      color: var(--muted);
+      max-width: 700px;
+    }
+    .featured {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 24px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+    @media (max-width: 780px) {
+      .featured { grid-template-columns: 1fr; }
+    }
+    .featured img {
+      width: 100%;
+      height: 100%;
+      min-height: 260px;
+      max-height: 350px;
+      object-fit: cover;
+      background: #ffffff;
+      display: block;
+    }
+    .featured-body {
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .cat {
+      display: inline-block;
+      width: fit-content;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--accent);
+      background: var(--accent-soft);
+      padding: 4px 10px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+    }
+    .featured-body h2 {
+      font-size: 1.45rem;
+      line-height: 1.35;
+      margin-bottom: 10px;
+    }
+    .featured-body h2 a {
+      color: var(--ink);
+      text-decoration: none;
+    }
+    .featured-body h2 a:hover { color: var(--accent); }
+    .featured-body p {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-bottom: 18px;
+    }
+    .read-btn {
+      display: inline-block;
+      width: fit-content;
+      text-decoration: none;
+      background: var(--btn-bg);
+      color: var(--btn-ink);
+      font-size: 0.9rem;
+      font-weight: 600;
+      padding: 9px 16px;
+      border-radius: 8px;
+    }
+    .read-btn:hover { opacity: 0.9; }
+    .sub-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+    }
+    @media (max-width: 700px) {
+      .sub-grid { grid-template-columns: 1fr; }
+    }
+    .post {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .post img {
+      width: 100%;
+      height: 220px;
+      object-fit: cover;
+      background: #ffffff;
+      display: block;
+    }
+    .post-body {
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+    .post-body h3 {
+      font-size: 1.15rem;
+      margin-bottom: 8px;
+      line-height: 1.35;
+    }
+    .post-body h3 a {
+      color: var(--ink);
+      text-decoration: none;
+    }
+    .post-body h3 a:hover { color: var(--accent); }
+    .post-body p {
+      color: var(--muted);
+      font-size: 0.92rem;
+      margin-bottom: 16px;
+      flex: 1;
+    }
+    .post-link {
+      text-decoration: none;
+      color: var(--accent);
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    .post-link:hover { text-decoration: underline; }
+    footer {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--muted);
+      font-size: 0.88rem;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+  </style>
 </head>
 <body>
-    <main>
-        <header>
-            <h1>MyMiniCloud - Personal Blog</h1>
-            <p class="subtitle">Notes on containers, cloud infrastructure, and web hosting.</p>
-        </header>
+  <header>
+    <div class="nav">
+      <a class="logo" href="/blog/">MyMiniCloud <span>Blog</span></a>
+      <div class="nav-actions">
+        <button class="theme-btn" type="button" id="theme-toggle">Giao diện Tối</button>
+        <a class="back-btn" href="/">Quay lại trang chính</a>
+      </div>
+    </div>
+  </header>
 
-        <h2>Articles</h2>
+  <main class="wrap">
+    <section class="intro">
+      <small>Góc chia sẻ kiến thức AI và Dữ liệu - Nhóm G09</small>
+      <h1>Ba chủ đề cốt lõi trong Trí tuệ nhân tạo hiện đại</h1>
+      <p>
+        Tổng hợp ba bài viết ngắn gọn và dễ hiểu về Xử lý ngôn ngữ tự nhiên, Thị giác máy tính và Khoa học dữ liệu, được lưu trữ trên Web Frontend Server qua Nginx alias.
+      </p>
+    </section>
 
-        <ol class="articles">
-            <li>
-                <a href="/blog/blog1.html">
-                    <span class="article-title">Blog 1 - Introduction to Docker</span>
-                    <span class="article-meta">Containers and images</span>
-                </a>
-            </li>
-            <li>
-                <a href="/blog/blog2.html">
-                    <span class="article-title">Blog 2 - Cloud Computing Basics</span>
-                    <span class="article-meta">Cloud infrastructure</span>
-                </a>
-            </li>
-            <li>
-                <a href="/blog/blog3.html">
-                    <span class="article-title">Blog 3 - Nginx and Reverse Proxy</span>
-                    <span class="article-meta">Web hosting and request routing</span>
-                </a>
-            </li>
-        </ol>
+    <article class="featured">
+      <a href="blog1.html">
+        <img
+          src="https://upload.wikimedia.org/wikipedia/commons/3/34/Transformer%2C_full_architecture.png"
+          referrerpolicy="no-referrer"
+          onerror="this.src='images/blog1.jpg'"
+          alt="Kiến trúc Transformer trong Xử lý ngôn ngữ tự nhiên"
+        />
+      </a>
+      <div class="featured-body">
+        <span class="cat">Bài viết 01 (Xử lý ngôn ngữ tự nhiên)</span>
+        <h2><a href="blog1.html">Xử lý ngôn ngữ tự nhiên (NLP): Cách máy tính đọc và hiểu văn bản tiếng người</a></h2>
+        <p>
+          Từ việc tách từ, biểu diễn câu bằng vector cho tới kiến trúc Transformer giúp các mô hình ngôn ngữ có thể dịch thuật, tóm tắt văn bản và trả lời câu hỏi tự nhiên.
+        </p>
+        <a class="read-btn" href="blog1.html">Đọc bài viết</a>
+      </div>
+    </article>
 
-        <nav class="pagination">
-            <a href="/">Back to Home</a>
-        </nav>
-    </main>
+    <section class="sub-grid">
+      <article class="post">
+        <a href="blog2.html">
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/3/38/Detected-with-YOLO--Schreibtisch-mit-Objekten.jpg"
+            referrerpolicy="no-referrer"
+            onerror="this.src='images/blog2.jpg'"
+            alt="Nhận diện vật thể bằng thuật toán YOLO"
+          />
+        </a>
+        <div class="post-body">
+          <span class="cat">Bài viết 02 (Thị giác máy tính)</span>
+          <h3><a href="blog2.html">Thị giác máy tính (Computer Vision): Giúp máy móc nhìn và nhận diện vật thể</a></h3>
+          <p>
+            Tìm hiểu cách ảnh kỹ thuật số được chuyển thành ma trận điểm ảnh, cách mạng tích chập CNN trích xuất đặc trưng và ứng dụng YOLO nhận diện đồ vật theo thời gian thực.
+          </p>
+          <a class="post-link" href="blog2.html">Đọc tiếp bài 2</a>
+        </div>
+      </article>
+
+      <article class="post">
+        <a href="blog3.html">
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Data_visualization_process_v1.png"
+            referrerpolicy="no-referrer"
+            onerror="this.src='images/blog3.jpg'"
+            alt="Quy trình xử lý và trực quan hóa dữ liệu trong Khoa học dữ liệu"
+          />
+        </a>
+        <div class="post-body">
+          <span class="cat">Bài viết 03 (Khoa học dữ liệu)</span>
+          <h3><a href="blog3.html">Khoa học dữ liệu (Data Science): Từ dữ liệu thô đến quyết định thực tế</a></h3>
+          <p>
+            Đi qua các bước làm sạch dữ liệu, phân tích khám phá, trực quan hóa biểu đồ và huấn luyện mô hình dự đoán để tìm ra thông tin có giá trị từ tập dữ liệu lớn.
+          </p>
+          <a class="post-link" href="blog3.html">Đọc tiếp bài 3</a>
+        </div>
+      </article>
+    </section>
+
+    <footer>
+      <span>Trang blog tĩnh phục vụ qua Nginx alias (/blog/)</span>
+      <a class="back-btn" href="/">Về trang chính (Home)</a>
+    </footer>
+  </main>
+
+  <script>
+    const themeBtn = document.getElementById("theme-toggle");
+    function updateThemeBtn() {
+      const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+      themeBtn.textContent = isDark ? "Giao diện Sáng" : "Giao diện Tối";
+    }
+    updateThemeBtn();
+    themeBtn.addEventListener("click", () => {
+      const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+      if (isDark) {
+        document.documentElement.removeAttribute("data-theme");
+        localStorage.setItem("minicloud-theme", "light");
+      } else {
+        document.documentElement.setAttribute("data-theme", "dark");
+        localStorage.setItem("minicloud-theme", "dark");
+      }
+      updateThemeBtn();
+    });
+  </script>
 </body>
 </html>

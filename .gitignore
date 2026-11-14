@@ -1,5 +1,5 @@
 # Bảo mật (Tuyệt đối không push)
-*.pem
+# *.pem
 .env
 
 # Dữ liệu Database & Storage (Rất nặng)
