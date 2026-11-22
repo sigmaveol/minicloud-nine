@@ -10,4 +10,4 @@ RUN printf '%s\n' '#!/bin/sh' 'set -eu' \
     && chmod +x /docker-entrypoint.d/40-render-node.sh
 RUN chmod -R 755 /usr/share/nginx/html
 EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["nginx", "-g", "daemon off;"] 
