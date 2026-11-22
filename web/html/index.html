@@ -526,11 +526,12 @@
 
   <script>
     const host = window.location.hostname || "localhost";
+    const rawHost = host.replace(/\.nip\.io$/, "");
     document.getElementById("host-label").textContent = host;
     document.querySelectorAll("a[data-port]").forEach((el) => {
       const port = el.getAttribute("data-port");
       const path = el.getAttribute("data-path") || "";
-      el.href = `http://${host}:${port}${path}`;
+      el.href = `http://${rawHost}:${port}${path}`;
       el.target = "_blank";
     });
 
