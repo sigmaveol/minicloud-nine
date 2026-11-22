@@ -1,0 +1,341 @@
+{
+  "compose_project_name": "g09-minicloud",
+  "container_count": 13,
+  "services": [
+    {
+      "name": "web-frontend-server",
+      "container_name": "web-frontend-server",
+      "image": "g09-minicloud/web:dev",
+      "ports": [
+        "8080:80"
+      ],
+      "environment": [],
+      "networks": [
+        "cloud-net"
+      ],
+      "volumes": [],
+      "depends_on": [],
+      "healthcheck": false,
+      "restart": "unless-stopped"
+    },
+    {
+      "name": "web-frontend-server2",
+      "container_name": "web-frontend-server2",
+      "image": "g09-minicloud/web:dev",
+      "ports": [
+        "8082:80"
+      ],
+      "environment": [],
+      "networks": [
+        "cloud-net"
+      ],
+      "volumes": [],
+      "depends_on": [],
+      "healthcheck": false,
+      "restart": "unless-stopped"
+    },
+    {
+      "name": "application-backend-server",
+      "container_name": "application-backend-server",
+      "image": "g09-minicloud/app:dev",
+      "ports": [
+        "8085:8081"
+      ],
+      "environment": {
+        "OIDC_ISSUER": "${OIDC_ISSUER:-http://authentication-identity-server:8080/realms/master}",
+        "OIDC_AUDIENCE": "${OIDC_AUDIENCE:-myapp}",
+        "DB_HOST": "relational-database-server",
+        "DB_USER": "root",
+        "DB_PASSWORD": "${DB_ROOT_PASSWORD:-root}",
+        "DB_NAME": "studentdb"
+      },
+      "networks": [
+        "cloud-net"
+      ],
+      "volumes": [
+        "./app:/app"
+      ],
+      "depends_on": [
+        "relational-database-server",
+        "authentication-identity-server"
+      ],
+      "healthcheck": false,
+      "restart": "unless-stopped"
+    },
+    {
+      "name": "relational-database-server",
+      "container_name": "relational-database-server",
+      "image": "mariadb:11",
+      "ports": [
+        "3306:3306"
+      ],
+      "environment": {
+        "MARIADB_ROOT_PASSWORD": "${DB_ROOT_PASSWORD:-root}",
+        "MARIADB_DATABASE": "minicloud"
+      },
+      "networks": [
+        "cloud-net"
+      ],
+      "volumes": [
+        "mariadb-data:/var/lib/mysql",
+        "./db/init:/docker-entrypoint-initdb.d:ro"
+      ],
+      "depends_on": [],
+      "healthcheck": true,
+      "restart": "unless-stopped"
+    },
+    {
+      "name": "authentication-identity-server",
+      "container_name": "authentication-identity-server",
+      "image": "quay.io/keycloak/keycloak:26.3",
+      "ports": [
+        "8081:8080"
+      ],
+      "environment": {
+        "KC_BOOTSTRAP_ADMIN_USERNAME": "${KEYCLOAK_ADMIN:-admin}",
+        "KC_BOOTSTRAP_ADMIN_PASSWORD": "${KEYCLOAK_PASSWORD:-admin}",
+        "KC_HTTP_ENABLED": "true"
+      },
+      "networks": [
+        "cloud-net"
+      ],
+      "volumes": [],
+      "depends_on": [],
+      "healthcheck": false,
+      "restart": "unless-stopped"
+    },
+    {
+      "name": "object-storage-server",
+      "container_name": "object-storage-server",
+      "image": "chainguard/minio:latest",
+      "ports": [
+        "9000:9000",
+        "9001:9001"
+      ],
+      "environment": {
+        "MINIO_ROOT_USER": "${MINIO_ROOT_USER:-minioadmin}",
+        "MINIO_ROOT_PASSWORD": "${MINIO_ROOT_PASSWORD:-minioadmin}"
+      },
+      "networks": [
+        "cloud-net"
+      ],
+      "volumes": [
+        "minio-data:/data"
+      ],
+      "depends_on": [],
+      "healthcheck": false,
+      "restart": "unless-stopped"
+    },
+    {
+      "name": "internal-dns-server",
+      "container_name": "internal-dns-server",
+      "image": "internetsystemsconsortium/bind9:9.20",
+      "ports": [
+        "1053:53/udp",
+        "1053:53/tcp"
+      ],
+      "environment": [],
+      "networks": [
+        "cloud-net"
+      ],
+      "volumes": [
+        "./dns/named.conf:/etc/bind/named.conf:ro",
+        "./dns/named.conf.options:/etc/bind/named.conf.options:ro",
+        "./dns/named.conf.local:/etc/bind/named.conf.local:ro",
+        "./dns/db.cloud.local:/etc/bind/db.cloud.local:ro"
+      ],
+      "depends_on": [],
+      "healthcheck": false,
+      "restart": "unless-stopped"
+    },
+    {
+      "name": "monitoring-node-exporter-server",
+      "container_name": "monitoring-node-exporter-server",
+      "image": "prom/node-exporter:latest",
+      "ports": [
+        "9100:9100"
+      ],
+      "environment": [],
+      "networks": [
+        "cloud-net"
+      ],
+      "volumes": [],
+      "depends_on": [],
+      "healthcheck": false,
+      "restart": "unless-stopped"
+    },
+    {
+      "name": "monitoring-prometheus-server",
+      "container_name": "monitoring-prometheus-server",
+      "image": "prom/prometheus:latest",
+      "ports": [
+        "9090:9090"
+      ],
+      "environment": [],
+      "networks": [
+        "cloud-net"
+      ],
+      "volumes": [
+        "./monitor/prometheus.yml:/etc/prometheus/prometheus.yml:ro",
+        "prometheus-data:/prometheus"
+      ],
+      "depends_on": [
+        "monitoring-node-exporter-server"
+      ],
+      "healthcheck": false,
+      "restart": "unless-stopped"
+    },
+    {
+      "name": "monitoring-grafana-dashboard-server",
+      "container_name": "monitoring-grafana-dashboard-server",
+      "image": "grafana/grafana:latest",
+      "ports": [
+        "3000:3000"
+      ],
+      "environment": [],
+      "networks": [
+        "cloud-net"
+      ],
+      "volumes": [
+        "grafana-data:/var/lib/grafana"
+      ],
+      "depends_on": [
+        "monitoring-prometheus-server"
+      ],
+      "healthcheck": false,
+      "restart": "unless-stopped"
+    },
+    {
+      "name": "api-gateway-proxy-server",
+      "container_name": "api-gateway-proxy-server",
+      "image": "nginx:stable",
+      "ports": [
+        "80:80"
+      ],
+      "environment": [],
+      "networks": [
+        "cloud-net"
+      ],
+      "volumes": [
+        "./proxy/nginx.conf:/etc/nginx/nginx.conf:ro"
+      ],
+      "depends_on": [
+        "web-frontend-server",
+        "application-backend-server",
+        "authentication-identity-server"
+      ],
+      "healthcheck": false,
+      "restart": "unless-stopped"
+    },
+    {
+      "name": "logging-loki-server",
+      "container_name": "logging-loki-server",
+      "image": "grafana/loki:2.9.0",
+      "ports": [
+        "3100:3100"
+      ],
+      "environment": [],
+      "networks": [
+        "cloud-net"
+      ],
+      "volumes": [
+        "loki-data:/loki"
+      ],
+      "depends_on": [],
+      "healthcheck": false,
+      "restart": "unless-stopped"
+    },
+    {
+      "name": "logging-promtail-server",
+      "container_name": "logging-promtail-server",
+      "image": "grafana/promtail:2.9.0",
+      "ports": [],
+      "environment": [],
+      "networks": [
+        "cloud-net"
+      ],
+      "volumes": [
+        "/var/lib/docker/containers:/var/lib/docker/containers:ro",
+        "/var/run/docker.sock:/var/run/docker.sock"
+      ],
+      "depends_on": [
+        "logging-loki-server"
+      ],
+      "healthcheck": false,
+      "restart": "unless-stopped"
+    }
+  ],
+  "networks": {
+    "cloud-net": {
+      "name": "g09-minicloud-network",
+      "driver": "bridge"
+    }
+  },
+  "volumes": [
+    "mariadb-data",
+    "minio-data",
+    "prometheus-data",
+    "grafana-data",
+    "loki-data"
+  ],
+  "app_routes": [
+    {
+      "method": "GET",
+      "path": "/hello"
+    },
+    {
+      "method": "GET",
+      "path": "/student"
+    },
+    {
+      "method": "GET",
+      "path": "/students-db"
+    },
+    {
+      "method": "POST",
+      "path": "/students-db"
+    },
+    {
+      "method": "PUT",
+      "path": "/students-db/<int:student_pk>"
+    },
+    {
+      "method": "DELETE",
+      "path": "/students-db/<int:student_pk>"
+    },
+    {
+      "method": "GET",
+      "path": "/secure"
+    }
+  ],
+  "app_snippet": "@app.get(\"/students-db\", strict_slashes=False)\ndef students_db():\n    try:\n        conn = get_db_connection()\n        try:\n            with conn.cursor() as cur:\n                cur.execute(\n                    \"SELECT id, student_id, fullname, DATE_FORMAT(dob, '%Y-%m-%d') AS dob, major \"\n                    \"FROM students ORDER BY id\"\n                )\n                data = cur.fetchall()\n        finally:",
+  "nginx_locations": [
+    "/",
+    "/api/",
+    "/student/",
+    "/auth/"
+  ],
+  "nginx_snippet": "events {}\n\nhttp {\n    upstream web_cluster {\n        server web-frontend-server:80;\n        server web-frontend-server2:80;\n    }\n\n    server {\n        listen 80;\n\n        # Load Balancing cho Web\n        location / {\n            proxy_pass http://web_cluster;\n            proxy_set_header Host $host;\n            proxy_set_header X-Real-IP $remote_addr;\n            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n            proxy_set_header X-Forwarded-Proto $scheme;",
+  "prometheus_jobs": [
+    "prometheus",
+    "node",
+    "web"
+  ],
+  "prometheus_snippet": "global:\n  scrape_interval: 15s # Thu thập dữ liệu 15s/ lan\n  evaluation_interval: 15s\n\nscrape_configs:\n  # 1. Prometheus Monitor\n  - job_name: 'prometheus'\n    static_configs:\n      - targets: ['localhost:9090']\n\n  # 2. Node Exporter Monitor (get metrics CPU, RAM, Network of host/container)\n  - job_name: 'node'\n    static_configs:\n      - targets: ['monitoring-node-exporter-server:9100']\n\n  # 3.Web Server Monitor (Level 2)",
+  "dns_a_records": [
+    "ns IN A 127.0.0.1",
+    "web-frontend-server IN A 10.10.10.10",
+    "web-frontend-server2 IN A 10.10.10.11",
+    "app-backend IN A 10.10.10.20",
+    "minio IN A 10.10.10.30",
+    "keycloak IN A 10.10.10.40",
+    "db IN A 10.10.10.50",
+    "prometheus IN A 10.10.10.60",
+    "grafana IN A 10.10.10.70",
+    "proxy IN A 10.10.10.80"
+  ],
+  "sql_init_files": [
+    "001_init.sql",
+    "002_studentdb.sql"
+  ]
+}

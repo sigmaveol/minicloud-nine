@@ -37,6 +37,9 @@ services:
       context: ./web
     image: g09-minicloud/web:dev
     container_name: web-frontend-server
+    environment:
+      NODE_NAME: web-frontend-server
+      NODE_LABEL: "Node 1"
     ports:
       - "8080:80"
     networks:
@@ -51,6 +54,9 @@ services:
       context: ./web
     image: g09-minicloud/web:dev
     container_name: web-frontend-server2
+    environment:
+      NODE_NAME: web-frontend-server2
+      NODE_LABEL: "Node 2"
     ports:
       - "8082:80" # switch port 
     networks:
@@ -124,6 +130,9 @@ services:
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN:-admin}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_PASSWORD:-admin}
       KC_HTTP_ENABLED: "true"
+      KC_PROXY_HEADERS: xforwarded
+      KC_HOSTNAME: https://18.143.192.118.nip.io
+      KC_HTTP_RELATIVE_PATH: /auth
     ports:
       - "8081:8080"
     networks:
@@ -228,8 +237,10 @@ services:
     container_name: api-gateway-proxy-server
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./proxy/nginx.conf:/etc/nginx/nginx.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     depends_on:
       - web-frontend-server
       - application-backend-server

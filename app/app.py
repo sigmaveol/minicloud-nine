@@ -1,4 +1,5 @@
 import html
+from datetime import date
 import json
 import os
 import time
@@ -25,7 +26,7 @@ DB_NAME = os.getenv("DB_NAME", "studentdb")
 
 _JWKS_CACHE = {}
 
-TABLE_TEMPLATE = """<!DOCTYPE html>
+TABLE_TEMPLATE = r"""<!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
@@ -85,6 +86,13 @@ TABLE_TEMPLATE = """<!DOCTYPE html>
       background: var(--surface); border: 1px solid var(--line);
       border-radius: 14px; overflow: hidden; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
     }
+    .table-scroll { overflow-x: auto; }
+    .editor { padding: 20px; margin-bottom: 20px; }
+    .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin: 16px 0; }
+    label { display: grid; gap: 6px; }
+    input { box-sizing: border-box; width: 100%; padding: 10px; border: 1px solid var(--btn-border); border-radius: 6px; background: var(--btn-bg); color: var(--ink); font: inherit; }
+    .danger { color: #dc2626; }
+    #crud-status { min-height: 24px; margin: 12px 0; }
     table { width: 100%; border-collapse: collapse; }
     thead { background: {{ header_bg }}; color: #fff; }
     th, td { padding: 14px 18px; text-align: left; font-size: 0.93rem; }
@@ -106,20 +114,122 @@ TABLE_TEMPLATE = """<!DOCTYPE html>
         <a class="btn" href="/">Trang chính</a>
       </div>
     </div>
-    <div class="card">
+    {% if editable %}
+    <form id="student-form" class="card editor">
+      <h2 id="editor-title">Thêm sinh viên</h2>
+      <p class="sub">Mã sinh viên được cấp tự động khi thêm mới.</p>
+      <div class="fields">
+        <label>Họ và tên<input name="fullname" maxlength="100" required /></label>
+        <label>Ngày sinh<input name="dob" type="date" /></label>
+        <label>Ngành học<input name="major" maxlength="50" /></label>
+      </div>
+      <div class="actions">
+        <button class="btn" type="submit" id="save-student">Thêm sinh viên</button>
+        <button class="btn" type="button" id="cancel-edit" hidden>Hủy sửa</button>
+      </div>
+    </form>
+    <div id="crud-status" role="status" aria-live="polite"></div>
+    {% endif %}
+    <div class="card table-scroll">
       <table>
         <thead>
-          <tr>{% for col in columns %}<th>{{ col }}</th>{% endfor %}</tr>
+          <tr>{% for col in columns %}<th>{{ col }}</th>{% endfor %}{% if editable %}<th>Thao tác</th>{% endif %}</tr>
         </thead>
         <tbody>
           {% for row in rows %}
-          <tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>
+          <tr>{% for cell in row %}<td>{{ cell if cell is not none else "" }}</td>{% endfor %}
+            {% if editable %}
+            <td><div class="actions">
+              <button class="btn" type="button" data-edit="{{ row[0] }}">Sửa</button>
+              <button class="btn danger" type="button" data-delete="{{ row[0] }}">Xóa</button>
+            </div></td>
+            {% endif %}
+          </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
   </div>
   <script>
+    {% if editable %}
+    const students = {{ students | tojson }};
+    const form = document.getElementById("student-form");
+    const status = document.getElementById("crud-status");
+    const saveButton = document.getElementById("save-student");
+    const cancelButton = document.getElementById("cancel-edit");
+    let editingId = null;
+    let busy = false;
+    // Keep requests on the current entry point: Gateway, Web proxy, or direct Flask.
+    const apiUrl = window.location.pathname.replace(/\/$/, "");
+    const flash = sessionStorage.getItem("minicloud-student-message");
+    if (flash) {
+      status.textContent = flash;
+      sessionStorage.removeItem("minicloud-student-message");
+    }
+    function resetEditor() {
+      editingId = null;
+      form.reset();
+      document.getElementById("editor-title").textContent = "Thêm sinh viên";
+      saveButton.textContent = "Thêm sinh viên";
+      cancelButton.hidden = true;
+    }
+    async function mutate(url, method, data, message) {
+      if (busy) return;
+      busy = true;
+      document.querySelectorAll("#student-form button, [data-edit], [data-delete]")
+        .forEach(button => button.disabled = true);
+      status.textContent = "Đang lưu thay đổi…";
+      try {
+        const options = { method, headers: { Accept: "application/json" } };
+        if (data) {
+          options.headers["Content-Type"] = "application/json";
+          options.body = JSON.stringify(data);
+        }
+        const response = await fetch(url, options);
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Thao tác thất bại.");
+        sessionStorage.setItem("minicloud-student-message", message);
+        window.location.reload();
+      } catch (error) {
+        status.textContent = error.message;
+        busy = false;
+        document.querySelectorAll("#student-form button, [data-edit], [data-delete]")
+          .forEach(button => button.disabled = false);
+      }
+    }
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+      const data = Object.fromEntries(new FormData(form));
+      for (const key of Object.keys(data)) data[key] = data[key].trim();
+      data.dob = data.dob || null;
+      mutate(editingId === null ? apiUrl : apiUrl + "/" + editingId,
+        editingId === null ? "POST" : "PUT", data,
+        editingId === null ? "Đã thêm sinh viên." : "Đã cập nhật sinh viên.");
+    });
+    cancelButton.addEventListener("click", resetEditor);
+    document.querySelectorAll("[data-edit]").forEach(button => {
+      button.addEventListener("click", () => {
+        const student = students.find(item => item.id === Number(button.dataset.edit));
+        editingId = student.id;
+        for (const field of ["fullname", "dob", "major"]) {
+          form.elements.namedItem(field).value = student[field] || "";
+        }
+        document.getElementById("editor-title").textContent = "Sửa sinh viên";
+        saveButton.textContent = "Lưu thay đổi";
+        cancelButton.hidden = false;
+        form.scrollIntoView({ behavior: "smooth", block: "start" });
+        form.elements.namedItem("fullname").focus();
+      });
+    });
+    document.querySelectorAll("[data-delete]").forEach(button => {
+      button.addEventListener("click", () => {
+        const student = students.find(item => item.id === Number(button.dataset.delete));
+        if (window.confirm("Xóa sinh viên " + student.fullname + "?")) {
+          mutate(apiUrl + "/" + student.id, "DELETE", null, "Đã xóa sinh viên.");
+        }
+      });
+    });
+    {% endif %}
     const btn = document.getElementById("theme-toggle");
     function syncLabel() {
       const isDark = document.documentElement.getAttribute("data-theme") === "dark";
@@ -230,70 +340,149 @@ def students_db():
             header_bg="#059669",
             columns=["#", "Student ID", "Fullname", "DOB", "Major"],
             rows=rows,
+            editable=True,
+            students=data,
         )
     return jsonify(data)
 
 
-@app.post("/students-db")
+def validate_student_fields(body, partial=False):
+    if not isinstance(body, dict):
+        return None, "Dữ liệu phải là một đối tượng JSON."
+    fields = {}
+    for key, limit in (("student_id", 10), ("fullname", 100), ("major", 50)):
+        if key not in body:
+            if not partial and key == "fullname":
+                return None, "Vui lòng nhập họ tên."
+            continue
+        value = body[key]
+        # Existing API callers can omit or pass null for optional updates.
+        if partial and value is None:
+            continue
+        if value is None and key == "major":
+            fields[key] = None
+            continue
+        if not isinstance(value, str):
+            return None, "Các trường văn bản phải là chuỗi."
+        value = value.strip()
+        if key != "major" and not value:
+            return None, "Mã sinh viên và họ tên không được để trống."
+        if len(value) > limit:
+            return None, f"{key} tối đa {limit} ký tự."
+        fields[key] = value
+    if "dob" in body:
+        dob = body["dob"]
+        if dob in (None, ""):
+            fields["dob"] = None
+        else:
+            try:
+                if not isinstance(dob, str) or date.fromisoformat(dob).isoformat() != dob:
+                    return None, "Ngày sinh phải có định dạng YYYY-MM-DD."
+            except ValueError:
+                return None, "Ngày sinh không hợp lệ."
+            fields["dob"] = dob
+    return fields, None
+
+
+@app.post("/students-db", strict_slashes=False)
 def create_student_db():
-    body = request.get_json(silent=True) or {}
-    student_id = body.get("student_id")
-    fullname = body.get("fullname")
-    dob = body.get("dob")
-    major = body.get("major")
-    if not student_id or not fullname:
-        return jsonify(error="student_id and fullname are required"), 400
+    fields, error = validate_student_fields(request.get_json(silent=True))
+    if error:
+        return jsonify(error=error), 400
+    conn = None
     try:
         conn = get_db_connection()
-        try:
-            with conn.cursor() as cur:
+        with conn.cursor() as cur:
+            student_id = fields.get("student_id")
+            if student_id is None:
+                # Create lazily so existing databases work without resetting their volumes.
                 cur.execute(
-                    "INSERT INTO students (student_id, fullname, dob, major) VALUES (%s, %s, %s, %s)",
-                    (student_id, fullname, dob, major),
+                    "CREATE TABLE IF NOT EXISTS student_id_sequence "
+                    "(id TINYINT PRIMARY KEY, value BIGINT UNSIGNED NOT NULL)"
                 )
-                new_id = cur.lastrowid
-            conn.commit()
-            return jsonify(message="Created student", id=new_id), 201
-        finally:
-            conn.close()
+                cur.execute("INSERT IGNORE INTO student_id_sequence (id, value) VALUES (1, 0)")
+                cur.execute(
+                    "SELECT COALESCE(MAX(CAST(SUBSTRING(student_id, 3) AS UNSIGNED)), 0) AS maximum "
+                    "FROM students WHERE student_id REGEXP '^SV[0-9]+$'"
+                )
+                maximum = cur.fetchone()["maximum"]
+                # The sequence row serializes concurrent creates and survives deletions.
+                cur.execute(
+                    "UPDATE student_id_sequence "
+                    "SET value = LAST_INSERT_ID(GREATEST(value, %s) + 1) WHERE id = 1",
+                    (maximum,),
+                )
+                cur.execute("SELECT LAST_INSERT_ID() AS number")
+                student_id = f"SV{cur.fetchone()['number']:03d}"
+                if len(student_id) > 10:
+                    conn.rollback()
+                    return jsonify(error="Đã hết phạm vi mã sinh viên tự động."), 409
+            cur.execute(
+                "INSERT INTO students (student_id, fullname, dob, major) VALUES (%s, %s, %s, %s)",
+                (student_id, fields["fullname"], fields.get("dob"), fields.get("major")),
+            )
+            new_id = cur.lastrowid
+        conn.commit()
+        return jsonify(message="Created student", id=new_id, student_id=student_id), 201
     except Exception as e:
+        if conn is not None:
+            conn.rollback()
         return jsonify(error=str(e)), 500
+    finally:
+        if conn is not None:
+            conn.close()
 
 
 @app.put("/students-db/<int:student_pk>")
 def update_student_db(student_pk):
-    body = request.get_json(silent=True) or {}
-    fullname = body.get("fullname")
-    major = body.get("major")
+    fields, error = validate_student_fields(request.get_json(silent=True), partial=True)
+    if error:
+        return jsonify(error=error), 400
+    conn = None
     try:
         conn = get_db_connection()
-        try:
-            with conn.cursor() as cur:
+        with conn.cursor() as cur:
+            # Lock the row so a concurrent delete cannot invalidate the existence check.
+            cur.execute("SELECT id FROM students WHERE id = %s FOR UPDATE", (student_pk,))
+            if cur.fetchone() is None:
+                conn.rollback()
+                return jsonify(error="Không tìm thấy sinh viên."), 404
+            if fields:
+                assignments = ", ".join(f"{key} = %s" for key in fields)
                 cur.execute(
-                    "UPDATE students SET fullname = COALESCE(%s, fullname), major = COALESCE(%s, major) WHERE id = %s",
-                    (fullname, major, student_pk),
+                    f"UPDATE students SET {assignments} WHERE id = %s",
+                    (*fields.values(), student_pk),
                 )
-            conn.commit()
-            return jsonify(message="Updated student", id=student_pk)
-        finally:
-            conn.close()
+        conn.commit()
+        return jsonify(message="Updated student", id=student_pk)
     except Exception as e:
+        if conn is not None:
+            conn.rollback()
         return jsonify(error=str(e)), 500
+    finally:
+        if conn is not None:
+            conn.close()
 
 
 @app.delete("/students-db/<int:student_pk>")
 def delete_student_db(student_pk):
+    conn = None
     try:
         conn = get_db_connection()
-        try:
-            with conn.cursor() as cur:
-                cur.execute("DELETE FROM students WHERE id = %s", (student_pk,))
-            conn.commit()
-            return jsonify(message="Deleted student", id=student_pk)
-        finally:
-            conn.close()
+        with conn.cursor() as cur:
+            cur.execute("DELETE FROM students WHERE id = %s", (student_pk,))
+            deleted = cur.rowcount
+        conn.commit()
+        if not deleted:
+            return jsonify(error="Không tìm thấy sinh viên."), 404
+        return jsonify(message="Deleted student", id=student_pk)
     except Exception as e:
+        if conn is not None:
+            conn.rollback()
         return jsonify(error=str(e)), 500
+    finally:
+        if conn is not None:
+            conn.close()
 
 
 @app.get("/secure")

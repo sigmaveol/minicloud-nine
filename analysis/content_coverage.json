@@ -1,0 +1,86 @@
+[
+  {
+    "content": "Đặt vấn đề & Mục tiêu dự án",
+    "chapter": "Chương 1",
+    "slides": "Slide 2",
+    "status": "Covered"
+  },
+  {
+    "content": "Phân công công việc Nhóm G09",
+    "chapter": "Chương 1",
+    "slides": "Slide 3",
+    "status": "Covered"
+  },
+  {
+    "content": "Kiến trúc tổng thể MyMiniCloud",
+    "chapter": "Chương 2",
+    "slides": "Slide 4",
+    "status": "Covered"
+  },
+  {
+    "content": "Thiết kế Docker Network & Volumes",
+    "chapter": "Chương 2",
+    "slides": "Slide 5",
+    "status": "Covered"
+  },
+  {
+    "content": "Luồng xử lý Request & Cấu trúc dự án",
+    "chapter": "Chương 2–3",
+    "slides": "Slide 6",
+    "status": "Covered"
+  },
+  {
+    "content": "Web Server & Reverse Proxy (Nginx)",
+    "chapter": "Chương 3 & Phụ lục C",
+    "slides": "Slide 8",
+    "status": "Covered"
+  },
+  {
+    "content": "Application Backend (Flask) & Auth (Keycloak)",
+    "chapter": "Chương 3",
+    "slides": "Slide 9–10",
+    "status": "Covered"
+  },
+  {
+    "content": "Database (MariaDB) & Object Storage (MinIO)",
+    "chapter": "Chương 3",
+    "slides": "Slide 11–12",
+    "status": "Covered"
+  },
+  {
+    "content": "Internal DNS (Bind9)",
+    "chapter": "Chương 3",
+    "slides": "Slide 12",
+    "status": "Covered"
+  },
+  {
+    "content": "Monitoring (Prometheus/Grafana) & Logging (Loki)",
+    "chapter": "Chương 3 & Phụ lục D",
+    "slides": "Slide 13",
+    "status": "Covered"
+  },
+  {
+    "content": "Docker Compose 13 Containers",
+    "chapter": "Chương 3 & Phụ lục B",
+    "slides": "Slide 7",
+    "status": "Covered"
+  },
+  {
+    "content": "Kiểm thử Web, Blog, API, DB, OIDC, MinIO, DNS, LB, Monitoring",
+    "chapter": "Chương 4",
+    "slides": "Slide 14–19",
+    "status": "Covered"
+  },
+  {
+    "content": "Triển khai AWS EC2 & Docker Hub",
+    "chapter": "Chương 4",
+    "slides": "Slide 20–21",
+    "status": "Covered"
+  },
+  {
+    "content": "Đánh giá, Hạn chế, Kết luận & Hướng phát triển",
+    "chapter": "Chương 5",
+    "slides": "Slide 22",
+    "status": "Covered"
+  }
+]

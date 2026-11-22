@@ -1,0 +1,712 @@
+[
+  {
+    "slide_no": 1,
+    "part": "Phần I – Giới thiệu",
+    "type": "cover",
+    "title": "BÁO CÁO CUỐI KỲ MÔN ĐIỆN TOÁN ĐÁM MÂY",
+    "subtitle": "MyMiniCloud – Hệ thống mô phỏng Điện toán đám mây thu nhỏ",
+    "meta": "Nhóm G09  |  GVHD: TS. BÙI QUY ANH  |  Trường ĐH Tôn Đức Thắng (11/2026)",
+    "speaker_notes": "Kính chào thầy TS. Bùi Quy Anh và các bạn. Nhóm G09 xin trình bày báo cáo đồ án cuối kỳ môn Điện toán đám mây: Xây dựng mô phỏng hệ thống MyMiniCloud với 13 container Docker, tích hợp đầy đủ các dịch vụ Cloud cốt lõi và triển khai thực tế trên AWS EC2. Tiếp theo là đặt vấn đề và mục tiêu dự án."
+  },
+  {
+    "slide_no": 2,
+    "part": "Phần I – Giới thiệu",
+    "type": "two_cards",
+    "title": "Đặt vấn đề & Mục tiêu dự án (Chương 1)",
+    "left_heading": "Bối cảnh & Vấn đề cần giải quyết",
+    "left_bullets": [
+      "Hệ thống Cloud thực tế gồm nhiều dịch vụ phân tách (Web, API, DB, Auth, Storage, Monitoring).",
+      "Triển khai thủ công rời rạc dễ xung đột môi trường, khó mở rộng và thiếu giám sát tập trung.",
+      "Cần mô hình MiniCloud chuẩn hóa bằng container để mô phỏng đầy đủ kiến trúc Cloud."
+    ],
+    "right_heading": "Mục tiêu & Phạm vi Nhóm G09",
+    "right_bullets": [
+      "Xây dựng 13 Docker containers vận hành đồng bộ qua Docker Compose.",
+      "Hoàn thành 10/10 yêu cầu mở rộng Level 2 (Blog, CRUD DB, OIDC, MinIO, LB, Grafana).",
+      "Triển khai thực tế lên AWS EC2 Ubuntu 22.04 và đóng gói image lên Docker Hub."
+    ],
+    "speaker_notes": "Trong bối cảnh các hệ thống hiện đại vận hành theo kiến trúc Microservices, việc quản lý riêng lẻ từng dịch vụ gặp nhiều khó khăn. Nhóm đặt mục tiêu xây dựng 13 container qua Docker Compose, hoàn thành toàn bộ 10 tiêu chí mở rộng và đưa hệ thống lên AWS EC2. Sau đây là phân công công việc của 4 thành viên."
+  },
+  {
+    "slide_no": 3,
+    "part": "Phần I – Giới thiệu",
+    "type": "table_slide",
+    "title": "Tổ chức nhóm & Phân công công việc (Nhóm G09)",
+    "subtitle": "Phân công phụ trách hạ tầng, phát triển dịch vụ, kiểm thử và triển khai Cloud",
+    "headers": [
+      "Họ và Tên",
+      "MSSV",
+      "Nhiệm vụ phụ trách chính"
+    ],
+    "rows": [
+      [
+        "1. Nguyễn Trí Nhân",
+        "52300138",
+        "Web Server (Giao diện, Blog), Internal DNS (Bind9), API Gateway / Reverse Proxy (Nginx, Load Balancing)."
+      ],
+      [
+        "2. Đoàn Lâm Phúc Khang",
+        "52200115",
+        "Application Server (Flask API, kết nối DB), Authentication Server (Keycloak, OIDC)."
+      ],
+      [
+        "3. Hoàng Sinh Hùng",
+        "52300106",
+        "Relational Database Server (MariaDB, Seed data), Object Storage Server (MinIO, Buckets)."
+      ],
+      [
+        "4. Trần Đình Lâm",
+        "52300125",
+        "Monitoring Server (Prometheus, Node Exporter), Logging & Visualization (Grafana, Loki, Promtail)."
+      ]
+    ],
+    "col_widths": [
+      4.2,
+      2.2,
+      12.2
+    ],
+    "font_size": 18,
+    "speaker_notes": "Nhóm G09 gồm 4 thành viên phụ trách các mảng độc lập từ Web & Internal DNS, Flask API, MariaDB & Auth, đến Monitoring, Logging và AWS EC2. Sự phân công rõ ràng giúp quá trình tích hợp 13 container diễn ra mạch lạc. Tiếp theo, mời thầy xem kiến trúc tổng thể hệ thống ở Chương 2."
+  },
+  {
+    "slide_no": 4,
+    "part": "Phần II – Kiến trúc",
+    "type": "bullets_image",
+    "title": "Kiến trúc tổng thể MyMiniCloud (Chương 2)",
+    "heading": "4 Lớp kiến trúc chính",
+    "bullets": [
+      "Edge / Gateway: Nginx Reverse Proxy (cổng 80) tiếp nhận toàn bộ lưu lượng và cân bằng tải.",
+      "Compute Layer: 2 Web Nginx (8080/8082) và Flask App Backend (8085).",
+      "Data & Security: MariaDB 11 (3306), MinIO S3 (9000/9001), Keycloak OIDC (8081), Bind9 (53).",
+      "Observability: Node Exporter, Prometheus, Grafana, Loki và Promtail."
+    ],
+    "image": {
+      "index": 3,
+      "figure_id": "Hình 2. 1",
+      "caption": "Hình 2. 1: Sơ đồ kiến trúc tổng thể MyMiniCloud.",
+      "mapped": true,
+      "image_path": "extracted_images/image_003.png",
+      "file": "D:\\Nam4_HK1\\Cloud Compuding\\minicloud-nine\\extracted_images\\image_003.png",
+      "filename": "image_003.png",
+      "rId": "rId13",
+      "chapter": 2,
+      "width_px": 1128,
+      "height_px": 1518,
+      "aspect_ratio": 0.743
+    },
+    "speaker_notes": "Hình 2.1 thể hiện kiến trúc phân lớp của MyMiniCloud. Mọi truy cập từ người dùng đi qua API Gateway ở cổng 80, sau đó định tuyến tới Web Cluster, Backend Flask hoặc Keycloak. Dữ liệu và giám sát được tách lớp rõ ràng. Slide tiếp theo trình bày chi tiết mạng nội bộ Docker Network."
+  },
+  {
+    "slide_no": 5,
+    "part": "Phần II – Kiến trúc",
+    "type": "bullets_image",
+    "title": "Kiến trúc mạng Docker Network & Volumes",
+    "heading": "Giao tiếp nội bộ & Lưu trữ bền vững",
+    "bullets": [
+      "Mạng bridge cloud-net (g09-minicloud-network) cô lập và kết nối 13 container.",
+      "Service Discovery: các container gọi nhau trực tiếp qua container_name.",
+      "Bind9 DNS (internal-dns-server) phân giải tên miền nội bộ zone cloud.local.",
+      "5 named volumes: mariadb-data, minio-data, prometheus-data, grafana-data, loki-data."
+    ],
+    "image": {
+      "index": 4,
+      "figure_id": "Hình 2. 2",
+      "caption": "Hình 2. 2: Sơ đồ mạng Docker Network của hệ thống.",
+      "mapped": true,
+      "image_path": "extracted_images/image_004.png",
+      "file": "D:\\Nam4_HK1\\Cloud Compuding\\minicloud-nine\\extracted_images\\image_004.png",
+      "filename": "image_004.png",
+      "rId": "rId14",
+      "chapter": 2,
+      "width_px": 981,
+      "height_px": 782,
+      "aspect_ratio": 1.254
+    },
+    "speaker_notes": "Toàn bộ 13 container nằm chung trong mạng bridge cloud-net, cho phép giao tiếp nội bộ qua tên container mà không cần phơi bày toàn bộ cổng ra ngoài. Năm named volumes đảm bảo dữ liệu MariaDB, MinIO và monitoring không bị mất khi restart container."
+  },
+  {
+    "slide_no": 6,
+    "part": "Phần II – Kiến trúc",
+    "type": "dual_images",
+    "title": "Luồng xử lý Request & Cấu trúc mã nguồn",
+    "left_title": "Luồng xử lý API /student",
+    "left_bullets": [
+      "Client gửi request qua Gateway (80) -> Flask API (8081).",
+      "Flask đọc JSON hoặc truy vấn MariaDB, trả kết quả JSON/HTML."
+    ],
+    "left_image": {
+      "index": 5,
+      "figure_id": "Hình 2.",
+      "caption": "Hình 2. : Sơ đồ Sequence Diagram luồng gọi API lấy danh sách sinh viên.",
+      "mapped": true,
+      "image_path": "extracted_images/image_005.png",
+      "file": "D:\\Nam4_HK1\\Cloud Compuding\\minicloud-nine\\extracted_images\\image_005.png",
+      "filename": "image_005.png",
+      "rId": "rId15",
+      "chapter": 2,
+      "width_px": 1386,
+      "height_px": 628,
+      "aspect_ratio": 2.207
+    },
+    "right_title": "Cấu trúc thư mục dự án",
+    "right_bullets": [
+      "Tổ chức theo từng module: web/, app/, db/, proxy/, dns/, monitor/.",
+      "Quản lý tập trung bằng docker-compose.yml ở thư mục gốc."
+    ],
+    "right_image": {
+      "index": 6,
+      "figure_id": "Hình 3. 1",
+      "caption": "Hình 3. 1: Cấu trúc thư mục mã nguồn dự án",
+      "mapped": true,
+      "image_path": "extracted_images/image_006.png",
+      "file": "D:\\Nam4_HK1\\Cloud Compuding\\minicloud-nine\\extracted_images\\image_006.png",
+      "filename": "image_006.png",
+      "rId": "rId16",
+      "chapter": 3,
+      "width_px": 677,
+      "height_px": 577,
+      "aspect_ratio": 1.173
+    },
+    "speaker_notes": "Bên trái là Sequence Diagram minh họa luồng request từ Client qua Nginx Gateway đến Flask và MariaDB. Bên phải là cấu trúc thư mục mã nguồn thực tế, tách biệt rõ từng thành phần giúp dễ bảo trì và đóng gói Dockerfile. Chúng ta chuyển sang Phần III: Thiết kế và cấu hình kỹ thuật."
+  },
+  {
+    "slide_no": 7,
+    "part": "Phần III – Thiết kế kỹ thuật",
+    "type": "table_slide",
+    "title": "Tổng hợp 13 Container trong docker-compose.yml",
+    "subtitle": "Xác minh từ cấu hình thực tế docker-compose.yml (project: g09-minicloud)",
+    "headers": [
+      "Nhóm",
+      "Container / Service",
+      "Image / Build",
+      "Cổng (Host:Cont)"
+    ],
+    "rows": [
+      [
+        "Gateway",
+        "api-gateway-proxy-server",
+        "nginx:alpine",
+        "80:80"
+      ],
+      [
+        "Web (x2)",
+        "web-frontend-server, web-frontend-server2",
+        "g09-minicloud/web:dev",
+        "8080:80, 8082:80"
+      ],
+      [
+        "Backend",
+        "application-backend-server",
+        "g09-minicloud/app:dev",
+        "8085:8081"
+      ],
+      [
+        "Database",
+        "relational-database-server",
+        "mariadb:11 (Healthcheck)",
+        "3306:3306"
+      ],
+      [
+        "Auth & S3",
+        "authentication-identity-server, object-storage-server",
+        "keycloak:24.0, minio",
+        "8081, 9000/9001"
+      ],
+      [
+        "DNS",
+        "internal-dns-server",
+        "ubuntu/bind9:9.18-22.04",
+        "53:53/udp,tcp"
+      ],
+      [
+        "Monitor (x3)",
+        "node-exporter, prometheus, grafana",
+        "prom/*, grafana/grafana",
+        "9100, 9090, 3000"
+      ],
+      [
+        "Logging (x2)",
+        "logging-loki-server, logging-promtail-server",
+        "loki:2.9.0, promtail:2.9.0",
+        "3100:3100"
+      ]
+    ],
+    "col_widths": [
+      2.4,
+      6.2,
+      5.4,
+      4.6
+    ],
+    "font_size": 16,
+    "speaker_notes": "Bảng này liệt kê đầy đủ 13 container được xác minh từ docker-compose.yml. Lưu ý MariaDB được cấu hình healthcheck để Flask Backend chỉ khởi động sau khi database sẵn sàng, giúp tránh lỗi kết nối khi boot."
+  },
+  {
+    "slide_no": 8,
+    "part": "Phần III – Thiết kế kỹ thuật",
+    "type": "bullets_code",
+    "title": "Web Server & Reverse Proxy (Nginx)",
+    "heading": "Định tuyến & Load Balancing (proxy/nginx.conf)",
+    "bullets": [
+      "Khối upstream web_cluster cân bằng tải Round-Robin giữa 2 Web server.",
+      "Header X-Backend $upstream_addr trả về IP container xử lý thực tế.",
+      "Định tuyến: / (Web), /api/ (Flask), /student/ (API), /auth/ (Keycloak).",
+      "Web Frontend phục vụ trang chủ và trang Blog cá nhân 3 bài viết (/blog/)."
+    ],
+    "code_title": "Trích đoạn proxy/nginx.conf",
+    "code": "events {}\n\nhttp {\n    upstream web_cluster {\n        server web-frontend-server:80;\n        server web-frontend-server2:80;\n    }\n\n    server {\n        listen 80;\n\n        # Load Balancing cho Web\n        location / {\n            proxy_pass http://web_cluster;\n            proxy_set_header Host $host;\n            proxy_set_header X-Real-IP $remote_addr;\n            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n            proxy_set_header X-Forwarded-Proto $scheme;",
+    "speaker_notes": "Cấu hình Nginx Reverse Proxy sử dụng upstream web_cluster để chia tải giữa web-frontend-server và web-frontend-server2. Nhờ header X-Backend, nhóm dễ dàng kiểm chứng việc luân phiên backend ở bước demo."
+  },
+  {
+    "slide_no": 9,
+    "part": "Phần III – Thiết kế kỹ thuật",
+    "type": "bullets_code",
+    "title": "Application Backend (Flask API)",
+    "heading": "Kiến trúc REST API (app/app.py)",
+    "bullets": [
+      "Chạy trên Python 3.11 Alpine, lắng nghe cổng 8081 (ánh xạ 8085).",
+      "GET /hello: kiểm tra trạng thái hoạt động của Backend.",
+      "GET /student: đọc students.json, trả JSON hoặc bảng HTML.",
+      "CRUD /students-db (GET, POST, PUT, DELETE): kết nối MariaDB qua pymysql.",
+      "GET /secure: xác thực Bearer JWT RS256 với Keycloak JWKS."
+    ],
+    "code_title": "Trích đoạn app/app.py (CRUD MariaDB)",
+    "code": "@app.get(\"/students-db\", strict_slashes=False)\ndef students_db():\n    try:\n        conn = get_db_connection()\n        try:\n            with conn.cursor() as cur:\n                cur.execute(\n                    \"SELECT id, student_id, fullname, DATE_FORMAT(dob, '%Y-%m-%d') AS dob, major \"\n                    \"FROM students ORDER BY id\"\n                )\n                data = cur.fetchall()\n        finally:",
+    "speaker_notes": "Backend Flask đảm nhiệm cả API tĩnh từ JSON lẫn API động kết nối trực tiếp MariaDB thông qua biến môi trường DB_HOST, DB_USER, DB_NAME. Ngoài ra endpoint /secure sử dụng thư viện python-jose để kiểm tra chữ ký JWT từ Keycloak."
+  },
+  {
+    "slide_no": 10,
+    "part": "Phần III – Thiết kế kỹ thuật",
+    "type": "two_cards",
+    "title": "Xác thực & Định danh (Keycloak OIDC)",
+    "left_heading": "Cấu hình Keycloak Server",
+    "left_bullets": [
+      "Chạy Keycloak 24.0 ở chế độ start-dev trên cổng 8081 (container 8080).",
+      "Tạo Realm riêng realm_sv001 và Client flask-app cho ứng dụng.",
+      "Quản lý 2 tài khoản sinh viên kiểm thử: sv01 và sv02."
+    ],
+    "right_heading": "Luồng xác thực OIDC & JWT RS256",
+    "right_bullets": [
+      "Người dùng đăng nhập lấy Access Token từ endpoint token của Keycloak.",
+      "Gửi request kèm Authorization: Bearer <token> tới API /secure.",
+      "Flask tải JWKS public key từ Keycloak, giải mã RS256 và xác thực quyền."
+    ],
+    "speaker_notes": "Hệ thống sử dụng Keycloak theo chuẩn OpenID Connect. Thay vì tự quản lý mật khẩu trong Flask, Backend chỉ cần lấy JWKS public key từ Keycloak để xác thực chữ ký RS256 của Bearer Token gửi lên /secure."
+  },
+  {
+    "slide_no": 11,
+    "part": "Phần III – Thiết kế kỹ thuật",
+    "type": "two_cards",
+    "title": "Cơ sở dữ liệu (MariaDB) & Lưu trữ bền vững",
+    "left_heading": "Thiết kế Schema & Khởi tạo tự động",
+    "left_bullets": [
+      "Sử dụng MariaDB 11 với volume mariadb-data gắn tại /var/lib/mysql.",
+      "001_init.sql: khởi tạo CSDL minicloud và bảng notes mặc định.",
+      "002_init.sql: khởi tạo CSDL studentdb và bảng students (3 bản ghi mẫu)."
+    ],
+    "right_heading": "Healthcheck & Độ tin cậy dữ liệu",
+    "right_bullets": [
+      "Healthcheck dùng mariadb-admin ping mỗi 5 giây (timeout 3s, retries 10).",
+      "Application Backend phụ thuộc condition: service_healthy của DB.",
+      "Dữ liệu được bảo toàn hoàn toàn khi container restart hoặc recreate."
+    ],
+    "speaker_notes": "MariaDB 11 tự động nạp 2 script SQL khi khởi tạo lần đầu để tạo đồng thời database mặc định minicloud và database mở rộng studentdb. Cơ chế healthcheck giúp Backend không bao giờ kết nối thất bại lúc khởi động."
+  },
+  {
+    "slide_no": 12,
+    "part": "Phần III – Thiết kế kỹ thuật",
+    "type": "two_cards",
+    "title": "Object Storage (MinIO) & Internal DNS (Bind9)",
+    "left_heading": "MinIO S3-Compatible Storage",
+    "left_bullets": [
+      "Cung cấp S3 API tại cổng 9000 và Web Console quản trị tại cổng 9001.",
+      "Lưu trữ bền vững thông qua named volume minio-data (/data).",
+      "Quản lý các bucket: demo, profile-pics và documents."
+    ],
+    "right_heading": "Bind9 Internal DNS (cloud.local)",
+    "right_bullets": [
+      "Container internal-dns-server (Bind9 9.18) mở cổng 53 TCP/UDP.",
+      "Quản lý Master Zone cloud.local qua tệp cấu hình db.cloud.local.",
+      "Các bản ghi A: ns, web-frontend-server, app-backend, minio, keycloak."
+    ],
+    "speaker_notes": "MinIO đóng vai trò lưu trữ đối tượng tương thích chuẩn S3 với 3 bucket phục vụ dữ liệu và hồ sơ. Song song đó, Bind9 cung cấp dịch vụ phân giải tên miền nội bộ cho zone cloud.local."
+  },
+  {
+    "slide_no": 13,
+    "part": "Phần III – Thiết kế kỹ thuật",
+    "type": "bullets_code",
+    "title": "Giám sát (Prometheus/Grafana) & Logging (Loki)",
+    "heading": "Observability Stack (5 Containers)",
+    "bullets": [
+      "Node Exporter (9100): thu thập CPU, RAM, Disk I/O, Network của host.",
+      "Prometheus (9090): scrape 15s/lần các job: prometheus, node, web.",
+      "Grafana (3000): trực quan hóa Dashboard Node Exporter Full.",
+      "Promtail & Loki (3100): thu thập và tập trung log Docker container."
+    ],
+    "code_title": "Trích đoạn monitor/prometheus.yml",
+    "code": "global:\n  scrape_interval: 15s # Thu thập dữ liệu 15s/ lan\n  evaluation_interval: 15s\n\nscrape_configs:\n  # 1. Prometheus Monitor\n  - job_name: 'prometheus'\n    static_configs:\n      - targets: ['localhost:9090']\n\n  # 2. Node Exporter Monitor (get metrics CPU, RAM, Network of host/container)\n  - job_name: 'node'\n    static_configs:\n      - targets: ['monitoring-node-exporter-server:9100']\n\n  # 3.Web Server Monitor (Level 2)",
+    "speaker_notes": "Cụm giám sát gồm 5 container chia làm 2 luồng: luồng Metrics qua Prometheus + Grafana và luồng Logs qua Promtail + Loki. Nhờ đó quản trị viên theo dõi được cả hiệu năng phần cứng lẫn nhật ký hoạt động của từng dịch vụ."
+  },
+  {
+    "slide_no": 14,
+    "part": "Phần IV – Demo & Kiểm thử",
+    "type": "dual_images",
+    "title": "Kiểm thử Web Server & Blog cá nhân (Chương 4)",
+    "left_title": "Giao diện trang chủ MyMiniCloud",
+    "left_bullets": [
+      "Truy cập qua cổng 80 (Gateway) và 8080/8082 trả về HTTP 200 OK."
+    ],
+    "left_image": {
+      "index": 10,
+      "figure_id": "Hình 4. 4",
+      "caption": "Hình 4. 4: Giao diện trang chủ",
+      "mapped": true,
+      "image_path": "extracted_images/image_010.png",
+      "file": "D:\\Nam4_HK1\\Cloud Compuding\\minicloud-nine\\extracted_images\\image_010.png",
+      "filename": "image_010.png",
+      "rId": "rId20",
+      "chapter": 4,
+      "width_px": 1917,
+      "height_px": 1027,
+      "aspect_ratio": 1.867
+    },
+    "right_title": "Trang Blog cá nhân (/blog/)",
+    "right_bullets": [
+      "Hiển thị đầy đủ 3 bài viết HTML theo yêu cầu mở rộng Web Server."
+    ],
+    "right_image": {
+      "index": 11,
+      "figure_id": "Hình 4. 5",
+      "caption": "Hình 4. 5: : Giao diện trang Blog cá nhân (Phần mở rộng)",
+      "mapped": true,
+      "image_path": "extracted_images/image_011.png",
+      "file": "D:\\Nam4_HK1\\Cloud Compuding\\minicloud-nine\\extracted_images\\image_011.png",
+      "filename": "image_011.png",
+      "rId": "rId22",
+      "chapter": 4,
+      "width_px": 1526,
+      "height_px": 776,
+      "aspect_ratio": 1.966
+    },
+    "speaker_notes": "Bước vào Phần IV Demo và Kiểm thử: hình bên trái là trang chủ MyMiniCloud qua Nginx, bên phải là trang Blog cá nhân với 3 bài viết tại đường dẫn /blog/ đã hoạt động ổn định."
+  },
+  {
+    "slide_no": 15,
+    "part": "Phần IV – Demo & Kiểm thử",
+    "type": "dual_images",
+    "title": "Kiểm thử Application API & Database CRUD",
+    "left_title": "API /student & /students-db",
+    "left_bullets": [
+      "Trả về danh sách sinh viên dạng JSON chuẩn và bảng HTML trực quan."
+    ],
+    "left_image": {
+      "index": 14,
+      "figure_id": "Hình 4. 9",
+      "caption": "Hình 4. 9: Danh sách sinh viên trả về từ API mở rộng",
+      "mapped": true,
+      "image_path": "extracted_images/image_014.png",
+      "file": "D:\\Nam4_HK1\\Cloud Compuding\\minicloud-nine\\extracted_images\\image_014.png",
+      "filename": "image_014.png",
+      "rId": "rId35",
+      "chapter": 4,
+      "width_px": 1180,
+      "height_px": 193,
+      "aspect_ratio": 6.114
+    },
+    "right_title": "Dữ liệu thực tế trong MariaDB",
+    "right_bullets": [
+      "Kiểm tra CSDL studentdb và thao tác CRUD trên bảng students thành công."
+    ],
+    "right_image": {
+      "index": 16,
+      "figure_id": "Hình 4. 11",
+      "caption": "Hình 4. 11: Kiểm tra dữ liệu sinh viên trong database mở rộng",
+      "mapped": true,
+      "image_path": "extracted_images/image_016.png",
+      "file": "D:\\Nam4_HK1\\Cloud Compuding\\minicloud-nine\\extracted_images\\image_016.png",
+      "filename": "image_016.png",
+      "rId": "rId37",
+      "chapter": 4,
+      "width_px": 1286,
+      "height_px": 303,
+      "aspect_ratio": 4.244
+    },
+    "speaker_notes": "Kiểm thử Backend cho thấy API trả về đúng dữ liệu sinh viên cả ở định dạng JSON lẫn giao diện web, đồng bộ trực tiếp với bảng students trong cơ sở dữ liệu MariaDB."
+  },
+  {
+    "slide_no": 16,
+    "part": "Phần IV – Demo & Kiểm thử",
+    "type": "dual_images",
+    "title": "Kiểm thử Xác thực Keycloak OIDC & /secure",
+    "left_title": "Lấy Access Token OIDC",
+    "left_bullets": [
+      "Gọi Keycloak token endpoint bằng tài khoản sv01/sv02 thành công."
+    ],
+    "left_image": {
+      "index": 23,
+      "figure_id": "Hình 4. 18",
+      "caption": "Hình 4. 18: Kết quả lấy Access Token thành công từ Keycloak qua giao thức OIDC",
+      "mapped": true,
+      "image_path": "extracted_images/image_023.png",
+      "file": "D:\\Nam4_HK1\\Cloud Compuding\\minicloud-nine\\extracted_images\\image_023.png",
+      "filename": "image_023.png",
+      "rId": "rId46",
+      "chapter": 4,
+      "width_px": 1290,
+      "height_px": 477,
+      "aspect_ratio": 2.704
+    },
+    "right_title": "Xác thực Bearer Token tại /secure",
+    "right_bullets": [
+      "API /secure giải mã JWT RS256 hợp lệ và trả về thông tin người dùng."
+    ],
+    "right_image": {
+      "index": 24,
+      "figure_id": "Hình 4. 19",
+      "caption": "Hình 4. 19: Xác thực thành công Bearer Token sv01 tại API /secure.",
+      "mapped": true,
+      "image_path": "extracted_images/image_024.png",
+      "file": "D:\\Nam4_HK1\\Cloud Compuding\\minicloud-nine\\extracted_images\\image_024.png",
+      "filename": "image_024.png",
+      "rId": "rId47",
+      "chapter": 4,
+      "width_px": 1283,
+      "height_px": 313,
+      "aspect_ratio": 4.099
+    },
+    "speaker_notes": "Trong kịch bản bảo mật, khi lấy Access Token từ Keycloak và gửi kèm trong header Authorization tới /secure, Flask xác thực thành công chữ ký RS256 cho cả sv01 và sv02."
+  },
+  {
+    "slide_no": 17,
+    "part": "Phần IV – Demo & Kiểm thử",
+    "type": "dual_images",
+    "title": "Kiểm thử MinIO Object Storage & Bind9 DNS",
+    "left_title": "Quản lý Bucket trên MinIO",
+    "left_bullets": [
+      "Tạo và quản lý thành công các bucket demo, profile-pics, documents."
+    ],
+    "left_image": {
+      "index": 28,
+      "figure_id": "Hình 4. 23",
+      "caption": "Hình 4. 23: Giao diện MinIO hiển thị các bucket profile-pics và documents",
+      "mapped": true,
+      "image_path": "extracted_images/image_028.png",
+      "file": "D:\\Nam4_HK1\\Cloud Compuding\\minicloud-nine\\extracted_images\\image_028.png",
+      "filename": "image_028.png",
+      "rId": "rId52",
+      "chapter": 4,
+      "width_px": 612,
+      "height_px": 382,
+      "aspect_ratio": 1.602
+    },
+    "right_title": "Phân giải tên miền Bind9",
+    "right_bullets": [
+      "Truy vấn tên miền nội bộ zone cloud.local trả về đúng IP container."
+    ],
+    "right_image": {
+      "index": 30,
+      "figure_id": "Hình 4. 25",
+      "caption": "Hình 4. 25: Kết quả phân giải tên miền theo yêu cầu mở rộng",
+      "mapped": true,
+      "image_path": "extracted_images/image_030.png",
+      "file": "D:\\Nam4_HK1\\Cloud Compuding\\minicloud-nine\\extracted_images\\image_030.png",
+      "filename": "image_030.png",
+      "rId": "rId55",
+      "chapter": 4,
+      "width_px": 1282,
+      "height_px": 230,
+      "aspect_ratio": 5.574
+    },
+    "speaker_notes": "MinIO Console hiển thị đầy đủ các bucket đã tạo và cho phép upload/download đối tượng. Bên phải là kết quả truy vấn DNS nội bộ qua Bind9 phân giải chính xác các tên miền cloud.local."
+  },
+  {
+    "slide_no": 18,
+    "part": "Phần IV – Demo & Kiểm thử",
+    "type": "dual_images",
+    "title": "Kiểm thử API Gateway, Load Balancing & Thông mạng",
+    "left_title": "Định tuyến Gateway & Cân bằng tải",
+    "left_bullets": [
+      "Kiểm tra định tuyến /, /api/, /student/ và luân phiên X-Backend."
+    ],
+    "left_image": {
+      "index": 35,
+      "figure_id": "Hình 4. 30",
+      "caption": "Hình 4. 30: Kiểm thử khả năng định tuyến của API Gateway",
+      "mapped": true,
+      "image_path": "extracted_images/image_035.png",
+      "file": "D:\\Nam4_HK1\\Cloud Compuding\\minicloud-nine\\extracted_images\\image_035.png",
+      "filename": "image_035.png",
+      "rId": "rId66",
+      "chapter": 4,
+      "width_px": 1328,
+      "height_px": 542,
+      "aspect_ratio": 2.45
+    },
+    "right_title": "Kiểm tra thông mạng nội bộ",
+    "right_bullets": [
+      "Các container trong cloud-net ping thông suốt qua tên dịch vụ."
+    ],
+    "right_image": {
+      "index": 37,
+      "figure_id": "Hình 4. 32",
+      "caption": "Hình 4. 32: Kiểm tra kết nối mạng giữa các containe",
+      "mapped": true,
+      "image_path": "extracted_images/image_037.png",
+      "file": "D:\\Nam4_HK1\\Cloud Compuding\\minicloud-nine\\extracted_images\\image_037.png",
+      "filename": "image_037.png",
+      "rId": "rId68",
+      "chapter": 4,
+      "width_px": 853,
+      "height_px": 1078,
+      "aspect_ratio": 0.791
+    },
+    "speaker_notes": "Hình bên trái chứng minh API Gateway định tuyến chính xác tới từng dịch vụ và luân phiên backend. Hình bên phải xác nhận khả năng thông mạng (ping) giữa các container trong mạng cloud-net."
+  },
+  {
+    "slide_no": 19,
+    "part": "Phần IV – Demo & Kiểm thử",
+    "type": "dual_images",
+    "title": "Kiểm thử Giám sát Prometheus & Grafana",
+    "left_title": "Trạng thái Targets trong Prometheus",
+    "left_bullets": [
+      "Các target prometheus, node, web đều ở trạng thái UP và thu thập metrics."
+    ],
+    "left_image": {
+      "index": 31,
+      "figure_id": "Hình 4. 26",
+      "caption": "Hình 4. 26: Trạng thái kết nối các Target trong Prometheus",
+      "mapped": true,
+      "image_path": "extracted_images/image_031.png",
+      "file": "D:\\Nam4_HK1\\Cloud Compuding\\minicloud-nine\\extracted_images\\image_031.png",
+      "filename": "image_031.png",
+      "rId": "rId57",
+      "chapter": 4,
+      "width_px": 1532,
+      "height_px": 742,
+      "aspect_ratio": 2.065
+    },
+    "right_title": "Dashboard Grafana Node Exporter Full",
+    "right_bullets": [
+      "Hiển thị trực quan CPU, RAM, Disk và băng thông mạng theo thời gian thực."
+    ],
+    "right_image": {
+      "index": 34,
+      "figure_id": "Hình 4. 29",
+      "caption": "Hình 4. 29: Màn hình dashboard Node Exporter Full",
+      "mapped": true,
+      "image_path": "extracted_images/image_034.png",
+      "file": "D:\\Nam4_HK1\\Cloud Compuding\\minicloud-nine\\extracted_images\\image_034.png",
+      "filename": "image_034.png",
+      "rId": "rId61",
+      "chapter": 4,
+      "width_px": 1912,
+      "height_px": 1020,
+      "aspect_ratio": 1.875
+    },
+    "speaker_notes": "Trên giao diện Prometheus, toàn bộ target đều UP. Khi kết nối vào Grafana với dashboard Node Exporter Full, hệ thống hiển thị trực quan đầy đủ các chỉ số tài nguyên của máy chủ."
+  },
+  {
+    "slide_no": 20,
+    "part": "Phần V – Triển khai & Đánh giá",
+    "type": "dual_images",
+    "title": "Triển khai thực tế trên AWS EC2",
+    "left_title": "13 Container Healthy trên EC2",
+    "left_bullets": [
+      "Triển khai Ubuntu 22.04 LTS, cấu hình Security Group và chạy 13 container."
+    ],
+    "left_image": {
+      "index": 42,
+      "figure_id": "Hình 4. 37",
+      "caption": "Hình 4. 37: Trạng thái 13 container (bao gồm DB ở trạng thái Healthy) sau khi triển khai bằng Docker Compose trên EC2",
+      "mapped": true,
+      "image_path": "extracted_images/image_042.png",
+      "file": "D:\\Nam4_HK1\\Cloud Compuding\\minicloud-nine\\extracted_images\\image_042.png",
+      "filename": "image_042.png",
+      "rId": "rId74",
+      "chapter": 4,
+      "width_px": 1917,
+      "height_px": 1020,
+      "aspect_ratio": 1.879
+    },
+    "right_title": "Truy cập qua Public IP",
+    "right_bullets": [
+      "Truy cập thành công Web và API /students-db từ Internet qua Public IP."
+    ],
+    "right_image": {
+      "index": 43,
+      "figure_id": "Hình 4. 38",
+      "caption": "Hình 4. 38: Truy cập giao diện Web qua Public IP của AWS EC2",
+      "mapped": true,
+      "image_path": "extracted_images/image_043.png",
+      "file": "D:\\Nam4_HK1\\Cloud Compuding\\minicloud-nine\\extracted_images\\image_043.png",
+      "filename": "image_043.png",
+      "rId": "rId79",
+      "chapter": 4,
+      "width_px": 1531,
+      "height_px": 782,
+      "aspect_ratio": 1.958
+    },
+    "speaker_notes": "Chuyển sang Phần V: nhóm đã triển khai toàn bộ hệ thống lên AWS EC2 Ubuntu 22.04 LTS, mở cổng trên Security Group và xác nhận cả 13 container hoạt động ổn định, truy cập được từ bên ngoài qua Public IP."
+  },
+  {
+    "slide_no": 21,
+    "part": "Phần V – Triển khai & Đánh giá",
+    "type": "dual_images",
+    "title": "Đóng gói & Phân phối Image lên Docker Hub",
+    "left_title": "Repository trên Docker Hub",
+    "left_bullets": [
+      "Đóng gói và đẩy thành công image Web và App Backend lên Docker Hub."
+    ],
+    "left_image": {
+      "index": 47,
+      "figure_id": "Hình 4. 42",
+      "caption": "Hình 4. 42: Giao diện trang cá nhân Docker Hub hiển thị các repository của nhóm",
+      "mapped": true,
+      "image_path": "extracted_images/image_047.png",
+      "file": "D:\\Nam4_HK1\\Cloud Compuding\\minicloud-nine\\extracted_images\\image_047.png",
+      "filename": "image_047.png",
+      "rId": "rId84",
+      "chapter": 4,
+      "width_px": 1535,
+      "height_px": 777,
+      "aspect_ratio": 1.976
+    },
+    "right_title": "Kiểm thử Pull & Run độc lập",
+    "right_bullets": [
+      "Pull image về máy khác, chạy container ở cổng 9999 trả về HTTP 200 OK."
+    ],
+    "right_image": {
+      "index": 48,
+      "figure_id": "Hình 4. 43",
+      "caption": "Hình 4. 43: Terminal hiển thị quá trình pull, run container và kết quả HTTP 200 OK",
+      "mapped": true,
+      "image_path": "extracted_images/image_048.png",
+      "file": "D:\\Nam4_HK1\\Cloud Compuding\\minicloud-nine\\extracted_images\\image_048.png",
+      "filename": "image_048.png",
+      "rId": "rId85",
+      "chapter": 4,
+      "width_px": 1183,
+      "height_px": 632,
+      "aspect_ratio": 1.872
+    },
+    "speaker_notes": "Để đảm bảo tính di động, nhóm đã build, tag và push các custom image lên Docker Hub, sau đó kiểm thử pull về chạy độc lập và nhận kết quả HTTP 200 OK."
+  },
+  {
+    "slide_no": 22,
+    "part": "Phần V – Triển khai & Đánh giá",
+    "type": "two_cards",
+    "title": "Đánh giá hệ thống & Kết luận, Hướng phát triển (Chương 5)",
+    "left_heading": "Kết quả đạt được & Ưu điểm",
+    "left_bullets": [
+      "Hoàn thành 10/10 yêu cầu mở rộng Level 2 và vận hành đủ 13 container.",
+      "Kiến trúc tách lớp rõ ràng, dễ tái triển khai giữa Local và AWS EC2.",
+      "Đáp ứng đầy đủ từ định tuyến, bảo mật OIDC, lưu trữ S3 đến giám sát & log."
+    ],
+    "right_heading": "Hạn chế & Hướng phát triển",
+    "right_bullets": [
+      "Hạn chế: chưa bật HTTPS/TLS và vẫn chạy trên một node Docker Compose.",
+      "Nâng cấp HTTPS/TLS với Let's Encrypt và Certbot cho Reverse Proxy.",
+      "Chuyển đổi lên Kubernetes (K8s) để Auto-scaling và xây dựng CI/CD."
+    ],
+    "speaker_notes": "Tổng kết Chương 5: nhóm G09 đã hoàn thành 10/10 yêu cầu mở rộng và triển khai thành công trên AWS EC2. Trong tương lai, nhóm đề xuất bổ sung HTTPS/TLS, Kubernetes và CI/CD. Xin chân thành cảm ơn thầy và các bạn!"
+  }
+]
