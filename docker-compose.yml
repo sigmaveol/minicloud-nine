@@ -131,7 +131,7 @@ services:
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_PASSWORD:-admin}
       KC_HTTP_ENABLED: "true"
       KC_PROXY_HEADERS: xforwarded
-      KC_HOSTNAME: https://18.143.192.118.nip.io
+      KC_HOSTNAME: https://18.143.192.118.nip.io/auth
       KC_HTTP_RELATIVE_PATH: /auth
     ports:
       - "8081:8080"
